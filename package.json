@@ -1,0 +1,13 @@
+{
+	"name": "psalmsandhymns-website",
+	"private": true,
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"dev": "npm run dev --prefix web",
+		"build": "npm run build --prefix web",
+		"preview": "npm run preview --prefix web",
+		"test": "npm run test --prefix web"
+	}
+}

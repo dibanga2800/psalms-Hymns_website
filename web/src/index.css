@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: theme('fontFamily.sans');
+	@apply bg-rccg-cream text-slate-800 antialiased;
+}
+
+a {
+	@apply text-rccg-red underline-offset-4 hover:text-rccg-maroon hover:underline;
+}
+
