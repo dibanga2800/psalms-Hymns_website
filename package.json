@@ -1,9 +1,8 @@
 {
 	"name": "psalmsandhymns-website",
 	"private": true,
-	"workspaces": ["web"],
 	"engines": {
-		"node": "20.x"
+		"node": ">=20"
 	},
 	"dependencies": {
 		"@vercel/node": "^3.2.0",
