@@ -1,8 +1,13 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
 	CreditCard, Building2, Heart, Gift, CheckCircle2,
 	Lock, ArrowRight, Globe, Mic2, ShieldCheck, Users,
 } from 'lucide-react'
+
+import { MathCaptchaField } from '@/components/forms/MathCaptchaField'
+import { PageSEO } from '@/components/common/PageSEO'
+import { useMathCaptcha } from '@/hooks/useMathCaptcha'
 
 type GivingCategory = 'tithe' | 'offering' | 'building' | 'missions'
 type Frequency = 'one-off' | 'monthly'
@@ -86,6 +91,8 @@ export const Donations = () => {
 	const [customAmount, setCustomAmount] = useState<string>('')
 	const [frequency, setFrequency] = useState<Frequency>('one-off')
 	const [formState, setFormState] = useState<FormState>('idle')
+	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const captcha = useMathCaptcha()
 
 	const displayAmount = amount === 'custom' ? customAmount : amount
 	const activeCat = categories.find((c) => c.id === selectedCategory)!
@@ -100,12 +107,26 @@ export const Donations = () => {
 		setCustomAmount(e.target.value)
 	}
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		if (!displayAmount || Number(displayAmount) <= 0) return
+
+		const formData = new FormData(e.currentTarget)
+		if (String(formData.get('website')).trim()) return
+
+		const answer = Number(String(formData.get('captcha') ?? '').trim())
+		if (!Number.isFinite(answer) || answer !== captcha.solution) {
+			setCaptchaError('Please answer the anti-spam question correctly.')
+			return
+		}
+
+		setCaptchaError(null)
 		setFormState('submitting')
 		// TODO: replace with Stripe / PayPal SDK call
-		setTimeout(() => setFormState('success'), 1200)
+		setTimeout(() => {
+			setFormState('success')
+			captcha.regenerate()
+		}, 1200)
 	}
 
 	const handleReset = () => {
@@ -114,10 +135,18 @@ export const Donations = () => {
 		setFrequency('one-off')
 		setSelectedCategory('tithe')
 		setFormState('idle')
+		setCaptchaError(null)
+		captcha.regenerate()
 	}
 
 	return (
 		<div className='space-y-20 sm:space-y-24'>
+			<PageSEO
+				title='Give & Donations'
+				description='Support the work of RCCG Psalms & Hymns Parish in Stoke-on-Trent through tithes, offerings, building fund and missions giving. Give online or by bank transfer.'
+				path='/donations'
+				keywords='church donations Stoke-on-Trent, tithe RCCG Cobridge, church giving Staffordshire, support RCCG Psalms Hymns, building fund church Stoke-on-Trent, church offering online'
+			/>
 
 			{/* ── HERO ──────────────────────────────────────────── */}
 			<section className='relative overflow-hidden rounded-3xl bg-rccg-maroon text-white shadow-xl'>
@@ -127,25 +156,25 @@ export const Donations = () => {
 				<div className='relative z-10 grid gap-0 lg:grid-cols-2'>
 					{/* Left — copy */}
 					<div className='flex flex-col justify-center px-8 py-16 sm:px-12 sm:py-20 lg:py-24'>
-						<p className='text-[11px] font-bold uppercase tracking-[0.3em] text-rccg-gold'>
-							Giving &amp; Donations
-						</p>
-						<h1 className='mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.6rem]'>
-							Give Cheerfully,
-							<br />
-							<span className='text-rccg-gold'>Give Generously</span>
-						</h1>
-						<p className='mt-5 max-w-md text-sm leading-relaxed text-slate-100/80 sm:text-[15px]'>
-							Everything we have comes from God. Giving is an act of worship — a
-							declaration that He is first in our lives. Thank you for partnering
-							with us to advance the Kingdom.
-						</p>
-						<blockquote className='mt-6 border-l-2 border-rccg-gold/50 pl-4 text-sm italic text-white/70'>
-							&ldquo;God loves a cheerful giver.&rdquo;
-							<cite className='mt-1 block not-italic text-xs font-semibold text-rccg-gold'>
-								2 Corinthians 9:7
-							</cite>
-						</blockquote>
+					<p className='text-[11px] font-bold uppercase tracking-[0.3em] text-rccg-gold'>
+						Giving &amp; Donations
+					</p>
+					<h1 className='mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.6rem]'>
+						Give Cheerfully,
+						<br />
+						<span className='text-rccg-gold'>Give Generously</span>
+					</h1>
+					<p className='mt-5 max-w-md text-base leading-relaxed text-slate-100/80 sm:text-lg'>
+						Everything we have comes from God. Giving is an act of worship — a
+						declaration that He is first in our lives. Thank you for partnering
+						with us to advance the Kingdom.
+					</p>
+					<blockquote className='mt-6 border-l-2 border-rccg-gold/50 pl-4 text-base italic text-white/70'>
+						&ldquo;God loves a cheerful giver.&rdquo;
+						<cite className='mt-1 block not-italic text-sm font-semibold text-rccg-gold'>
+							2 Corinthians 9:7
+						</cite>
+					</blockquote>
 
 						{/* Quick trust signals */}
 						<div className='mt-8 flex flex-wrap gap-4'>
@@ -200,23 +229,21 @@ export const Donations = () => {
 					</div>
 
 					{formState === 'success' ? (
-						<div className='flex flex-col items-center gap-5 rounded-2xl bg-emerald-50 px-8 py-16 text-center ring-1 ring-emerald-200'>
+						<div className='flex flex-col items-center gap-6 rounded-2xl bg-emerald-50 px-8 py-16 text-center ring-1 ring-emerald-200'>
 							<CheckCircle2 className='h-14 w-14 text-emerald-500' aria-hidden />
 							<div>
-								<h3 className='text-2xl font-extrabold text-slate-900'>
-									Thank You!
-								</h3>
-								<p className='mt-2 max-w-sm text-sm text-slate-600'>
-									Your {activeCat.label.toLowerCase()} of{' '}
+								<h3 className='text-2xl font-extrabold text-slate-900'>Thank You!</h3>
+								<p className='mt-2 max-w-sm text-base text-slate-600'>
+									Thank you for your generosity. Please complete your gift of{' '}
 									<span className='font-bold text-rccg-red'>£{displayAmount}</span>
 									{frequency === 'monthly' ? ' per month ' : ' '}
-									has been received. May God bless and multiply it back to you.
+									via bank transfer using the details in the sidebar. May God bless and multiply it back to you.
 								</p>
 							</div>
 							<button
 								type='button'
 								onClick={handleReset}
-								className='rounded-full border border-slate-300 px-7 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100'
+								className='rounded-full border-2 border-slate-300 px-7 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100'
 							>
 								Give Again
 							</button>
@@ -331,24 +358,29 @@ export const Donations = () => {
 
 							<hr className='border-slate-100' />
 
-							{/* Payment placeholder */}
-							<div className='space-y-2'>
-								<p className='flex items-center gap-2 text-sm font-bold text-slate-800'>
-									<span className='flex h-5 w-5 items-center justify-center rounded-full bg-rccg-red text-[10px] font-extrabold text-white'>4</span>
-									Payment Details
-								</p>
-								<div className='flex items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-5 py-5'>
-									<CreditCard className='h-8 w-8 shrink-0 text-slate-300' aria-hidden />
-									<div>
-										<p className='text-sm font-semibold text-slate-500'>
-											Online payment coming soon
-										</p>
-										<p className='mt-0.5 text-xs leading-relaxed text-slate-400'>
-											Stripe / PayPal will be integrated here. Use bank transfer below in the meantime.
-										</p>
-									</div>
+							{/* Payment note */}
+							<div className='flex items-start gap-4 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-4'>
+								<CreditCard className='h-6 w-6 shrink-0 text-slate-400' aria-hidden />
+								<div>
+									<p className='text-sm font-semibold text-slate-700'>Complete via bank transfer</p>
+									<p className='mt-0.5 text-sm text-slate-500'>
+										Use the bank details in the sidebar to complete your gift. Online card payment is coming soon.
+									</p>
 								</div>
 							</div>
+
+							{/* Honeypot: hidden from users, bots fill it */}
+							<div className='absolute -left-[9999px] top-0' aria-hidden>
+								<label htmlFor='donations-website'>Website</label>
+								<input id='donations-website' name='website' type='text' tabIndex={-1} autoComplete='off' />
+							</div>
+
+							<MathCaptchaField
+								a={captcha.a}
+								b={captcha.b}
+								onRegenerate={captcha.regenerate}
+								error={captchaError}
+							/>
 
 							{/* CTA */}
 							<button
@@ -386,9 +418,9 @@ export const Donations = () => {
 							<span className='flex h-9 w-9 items-center justify-center rounded-lg bg-rccg-red/10'>
 								<Building2 className='h-4.5 w-4.5 text-rccg-red' aria-hidden />
 							</span>
-							<h3 className='text-sm font-bold text-slate-900'>Bank Transfer</h3>
+							<h3 className='text-base font-bold text-slate-900'>Bank Transfer</h3>
 						</div>
-						<p className='mt-3 text-xs leading-relaxed text-slate-500'>
+						<p className='mt-3 text-sm leading-relaxed text-slate-500'>
 							Give directly via bank transfer. Use your name and giving category as the payment reference.
 						</p>
 						<dl className='mt-4 space-y-3'>
@@ -398,7 +430,7 @@ export const Donations = () => {
 								{ label: 'Account No.', value: 'XXXXXXXX' },
 								{ label: 'Reference', value: 'Name + Category' },
 							].map(({ label, value }) => (
-								<div key={label} className='flex items-start justify-between gap-3 border-b border-slate-100 pb-3 text-xs last:border-0 last:pb-0'>
+								<div key={label} className='flex items-start justify-between gap-3 border-b border-slate-100 pb-3 text-sm last:border-0 last:pb-0'>
 									<dt className='font-semibold text-slate-600'>{label}</dt>
 									<dd className='text-right font-medium text-slate-800'>{value}</dd>
 								</div>
@@ -411,7 +443,7 @@ export const Donations = () => {
 						<p className='text-[10px] font-bold uppercase tracking-[0.22em] text-rccg-gold'>
 							Your Impact
 						</p>
-						<h3 className='mt-1 text-sm font-extrabold'>
+						<h3 className='mt-1 text-base font-extrabold'>
 							Every pound makes a difference
 						</h3>
 						<ul className='mt-4 space-y-3'>
@@ -421,8 +453,8 @@ export const Donations = () => {
 										<Icon className='h-3.5 w-3.5 text-white' aria-hidden />
 									</span>
 									<div>
-										<p className='text-xs font-bold text-white'>{label}</p>
-										<p className='text-[11px] leading-relaxed text-white/65'>{body}</p>
+										<p className='text-sm font-bold text-white'>{label}</p>
+										<p className='text-sm leading-relaxed text-white/65'>{body}</p>
 									</div>
 								</li>
 							))}
@@ -431,16 +463,16 @@ export const Donations = () => {
 
 					{/* Need help */}
 					<div className='rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200'>
-						<p className='text-sm font-semibold text-slate-800'>Questions about giving?</p>
-						<p className='mt-1 text-xs text-slate-500'>
+						<p className='text-base font-semibold text-slate-800'>Questions about giving?</p>
+						<p className='mt-1 text-sm text-slate-500'>
 							Our team is happy to help with tithes, offerings, or the building fund.
 						</p>
-						<a
-							href='/contact'
-							className='mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-rccg-red no-underline transition hover:underline'
+						<Link
+							to='/contact'
+							className='mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-rccg-red no-underline transition hover:underline'
 						>
-							Contact us <ArrowRight className='h-3 w-3' aria-hidden />
-						</a>
+							Contact us <ArrowRight className='h-3.5 w-3.5' aria-hidden />
+						</Link>
 					</div>
 				</aside>
 			</section>

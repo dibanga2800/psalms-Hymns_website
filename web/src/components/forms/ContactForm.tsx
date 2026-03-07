@@ -2,6 +2,8 @@ import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import { submitForm } from '@/lib/submitForm'
+
 const schema = z.object({
 	name: z.string().min(1, 'Name is required'),
 	email: z.string().email('Valid email is required'),
@@ -33,6 +35,7 @@ export const ContactForm = () => {
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		const formData = new FormData(event.currentTarget)
+		if (String(formData.get('website')).trim()) return
 		const values = {
 			name: String(formData.get('name') ?? ''),
 			email: String(formData.get('email') ?? ''),
@@ -69,35 +72,14 @@ export const ContactForm = () => {
 		setCaptchaError(null)
 		setFormState('submitting')
 
-		const apiUrl = import.meta.env.VITE_CONTACT_API_URL
-		const toEmail = import.meta.env.VITE_CONTACT_EMAIL_TO
-
 		try {
-			if (apiUrl) {
-				const response = await fetch(apiUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						to: toEmail,
-						name: parsed.data.name,
-						email: parsed.data.email,
-						phone: parsed.data.phone,
-						message: parsed.data.message,
-						context: 'contact-form',
-					}),
-				})
-
-				if (!response.ok) {
-					throw new Error(`Contact API responded with ${response.status}`)
-				}
-			} else {
-				console.warn(
-					'[contact] VITE_CONTACT_API_URL is not set. The form submission was not sent to a backend.',
-				)
-			}
-
+			await submitForm({
+				context: 'contact-form',
+				name: parsed.data.name,
+				email: parsed.data.email,
+				phone: parsed.data.phone,
+				message: parsed.data.message,
+			})
 			setFormState('success')
 			event.currentTarget.reset()
 			regenerateCaptcha()
@@ -110,8 +92,12 @@ export const ContactForm = () => {
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm'
+			className='relative space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm'
 		>
+			<div className='absolute -left-[9999px] top-0' aria-hidden>
+				<label htmlFor='contact-website'>Website</label>
+				<input id='contact-website' name='website' type='text' tabIndex={-1} autoComplete='off' />
+			</div>
 			<div className='space-y-1'>
 				<label
 					htmlFor='name'
@@ -211,6 +197,11 @@ export const ContactForm = () => {
 			{formState === 'success' && (
 				<p className='text-xs text-emerald-400'>
 					Thank you. Your message has been recorded.
+				</p>
+			)}
+			{formState === 'error' && (
+				<p className='text-xs text-red-400'>
+					Something went wrong. Please try again or contact us directly.
 				</p>
 			)}
 		</form>

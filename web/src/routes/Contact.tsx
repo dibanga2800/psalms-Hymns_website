@@ -1,13 +1,20 @@
 import { ContactForm } from '@/components/forms/ContactForm'
+import { PageSEO } from '@/components/common/PageSEO'
 
 export const Contact = () => {
 	return (
 		<div className='space-y-8'>
-			<section className='space-y-3'>
-				<h1 className='text-2xl font-bold tracking-tight text-slate-800 sm:text-3xl'>
+			<PageSEO
+				title='Contact Us'
+				description='Get in touch with RCCG Psalms & Hymns Parish in Cobridge, Stoke-on-Trent. Find our address at Emery Street, call +44 7724 812795, or send us a message.'
+				path='/contact'
+				keywords='contact RCCG Stoke-on-Trent, church address Emery Street Cobridge, contact Redeemed Christian Church Stoke-on-Trent, church phone number Staffordshire, RCCG Psalms Hymns contact'
+			/>
+			<section className='space-y-4'>
+				<h1 className='text-3xl font-extrabold tracking-tight text-slate-800 sm:text-4xl'>
 					Contact Us
 				</h1>
-				<p className='max-w-2xl text-slate-600 sm:text-base'>
+				<p className='max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg'>
 					Find our location and get in touch with Psalms &amp; Hymns Parish using the
 					contact form below.
 				</p>
@@ -15,11 +22,11 @@ export const Contact = () => {
 
 			<section className='space-y-4'>
 				<div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
-					<div className='px-4 pt-4 pb-2'>
-						<p className='text-sm font-semibold text-slate-800'>
+					<div className='px-5 pt-5 pb-2'>
+						<p className='text-base font-semibold text-slate-800'>
 							Visit Psalms &amp; Hymns Parish
 						</p>
-						<p className='mt-1 text-xs text-slate-600'>
+						<p className='mt-1 text-sm text-slate-600'>
 							Emery St, Cobridge, Stoke-on-Trent ST6 2JJ
 						</p>
 					</div>
@@ -39,4 +46,3 @@ export const Contact = () => {
 		</div>
 	)
 }
-

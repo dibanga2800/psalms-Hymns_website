@@ -2,6 +2,10 @@ import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import { submitForm } from '@/lib/submitForm'
+import { MathCaptchaField } from './MathCaptchaField'
+import { useMathCaptcha } from '@/hooks/useMathCaptcha'
+
 const schema = z.object({
 	name: z.string().min(1, 'Name is required'),
 	email: z.string().email('Valid email is required'),
@@ -14,15 +18,24 @@ type FormState = 'idle' | 'submitting' | 'success' | 'error'
 export const MembershipForm = () => {
 	const [formState, setFormState] = useState<FormState>('idle')
 	const [errors, setErrors] = useState<Record<string, string>>({})
+	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const captcha = useMathCaptcha()
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		const formData = new FormData(event.currentTarget)
+
+		// Honeypot: bots often fill hidden fields — silently reject
+		if (String(formData.get('website')).trim()) {
+			return
+		}
+
 		const values = {
 			name: String(formData.get('name') ?? ''),
 			email: String(formData.get('email') ?? ''),
 			phone: String(formData.get('phone') ?? ''),
 			note: String(formData.get('note') ?? ''),
+			captcha: String(formData.get('captcha') ?? ''),
 		}
 
 		const parsed = schema.safeParse(values)
@@ -36,18 +49,37 @@ export const MembershipForm = () => {
 				}
 			}
 			setErrors(fieldErrors)
+			setCaptchaError(null)
+			setFormState('error')
+			return
+		}
+
+		const answer = Number(values.captcha.trim())
+		if (!Number.isFinite(answer) || answer !== captcha.solution) {
+			setCaptchaError('Please answer the anti-spam question correctly.')
 			setFormState('error')
 			return
 		}
 
 		setErrors({})
+		setCaptchaError(null)
 		setFormState('submitting')
 
-		setTimeout(() => {
-			console.info('Membership form submitted', parsed.data)
+		try {
+			await submitForm({
+				context: 'membership-form',
+				name: parsed.data.name,
+				email: parsed.data.email,
+				phone: parsed.data.phone,
+				note: parsed.data.note || undefined,
+			})
 			setFormState('success')
 			event.currentTarget.reset()
-		}, 600)
+			captcha.regenerate()
+		} catch (error) {
+			console.error('[membership] Failed to submit', error)
+			setFormState('error')
+		}
 	}
 
 	return (
@@ -109,7 +141,7 @@ export const MembershipForm = () => {
 			<div className='space-y-1'>
 				<label
 					htmlFor='note'
-					className='block text-sm font-medium text-slate-100'
+					className='block text-sm font-medium text-slate-800'
 				>
 					How can we support you? (optional)
 				</label>
@@ -120,6 +152,17 @@ export const MembershipForm = () => {
 					className='block w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-rccg-red focus:ring-2 focus:ring-rccg-red/20'
 				/>
 			</div>
+			{/* Honeypot: hidden from users, bots fill it */}
+			<div className='absolute -left-[9999px] top-0' aria-hidden>
+				<label htmlFor='website'>Website</label>
+				<input id='website' name='website' type='text' tabIndex={-1} autoComplete='off' />
+			</div>
+			<MathCaptchaField
+				a={captcha.a}
+				b={captcha.b}
+				onRegenerate={captcha.regenerate}
+				error={captchaError}
+			/>
 			<button
 				type='submit'
 				disabled={formState === 'submitting'}
@@ -131,6 +174,11 @@ export const MembershipForm = () => {
 				<p className='text-xs text-emerald-400'>
 					Thank you for your interest in becoming a member. Our team will follow
 					up with you shortly.
+				</p>
+			)}
+			{formState === 'error' && (
+				<p className='text-xs text-red-400'>
+					Something went wrong. Please try again later.
 				</p>
 			)}
 		</form>

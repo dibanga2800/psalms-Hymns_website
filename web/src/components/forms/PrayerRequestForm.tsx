@@ -2,6 +2,10 @@ import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import { submitForm } from '@/lib/submitForm'
+import { MathCaptchaField } from './MathCaptchaField'
+import { useMathCaptcha } from '@/hooks/useMathCaptcha'
+
 const schema = z.object({
 	name: z.string().optional(),
 	contact: z.string().optional(),
@@ -13,14 +17,21 @@ type FormState = 'idle' | 'submitting' | 'success' | 'error'
 export const PrayerRequestForm = () => {
 	const [formState, setFormState] = useState<FormState>('idle')
 	const [errors, setErrors] = useState<Record<string, string>>({})
+	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const captcha = useMathCaptcha()
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		const formData = new FormData(event.currentTarget)
+
+		// Honeypot: bots often fill hidden fields
+		if (String(formData.get('website')).trim()) return
+
 		const values = {
 			name: String(formData.get('name') ?? ''),
 			contact: String(formData.get('contact') ?? ''),
 			request: String(formData.get('request') ?? ''),
+			captcha: String(formData.get('captcha') ?? ''),
 		}
 
 		const parsed = schema.safeParse(values)
@@ -34,18 +45,36 @@ export const PrayerRequestForm = () => {
 				}
 			}
 			setErrors(fieldErrors)
+			setCaptchaError(null)
+			setFormState('error')
+			return
+		}
+
+		const answer = Number(values.captcha.trim())
+		if (!Number.isFinite(answer) || answer !== captcha.solution) {
+			setCaptchaError('Please answer the anti-spam question correctly.')
 			setFormState('error')
 			return
 		}
 
 		setErrors({})
+		setCaptchaError(null)
 		setFormState('submitting')
 
-		setTimeout(() => {
-			console.info('Prayer request submitted', parsed.data)
+		try {
+			await submitForm({
+				context: 'prayer-request',
+				name: parsed.data.name || undefined,
+				contact: parsed.data.contact || undefined,
+				request: parsed.data.request,
+			})
 			setFormState('success')
 			event.currentTarget.reset()
-		}, 600)
+			captcha.regenerate()
+		} catch (error) {
+			console.error('[prayer-request] Failed to submit', error)
+			setFormState('error')
+		}
 	}
 
 	return (
@@ -98,6 +127,17 @@ export const PrayerRequestForm = () => {
 					<p className='text-xs text-red-400'>{errors.request}</p>
 				)}
 			</div>
+			{/* Honeypot: hidden from users, bots fill it */}
+			<div className='absolute -left-[9999px] top-0' aria-hidden>
+				<label htmlFor='website'>Website</label>
+				<input id='website' name='website' type='text' tabIndex={-1} autoComplete='off' />
+			</div>
+			<MathCaptchaField
+				a={captcha.a}
+				b={captcha.b}
+				onRegenerate={captcha.regenerate}
+				error={captchaError}
+			/>
 			<button
 				type='submit'
 				disabled={formState === 'submitting'}
@@ -109,6 +149,11 @@ export const PrayerRequestForm = () => {
 				<p className='text-xs text-emerald-400'>
 					Your request has been recorded. Our prayer team will pray along with
 					you.
+				</p>
+			)}
+			{formState === 'error' && (
+				<p className='text-xs text-red-400'>
+					Something went wrong. Please try again later.
 				</p>
 			)}
 		</form>

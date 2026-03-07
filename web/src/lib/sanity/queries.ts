@@ -45,6 +45,9 @@ export const HOME_PAGE_QUERY = `
     monthLabel,
     title,
     subtitle,
+    ctaText,
+    ctaUrl,
+    accentColor,
     "imageUrl": image.asset->url,
     order,
     active

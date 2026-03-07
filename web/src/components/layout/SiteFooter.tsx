@@ -3,6 +3,7 @@ import { Facebook, Instagram, Youtube, Phone, Mail, Radio, PlayCircle, Tv2 } fro
 
 const usefulLinks = [
 	{ to: '/about', label: 'About Psalms & Hymns' },
+	{ to: '/who-we-are', label: 'Who We Are' },
 	{ to: '/service-times', label: 'Service Time' },
 	{ to: '/donations', label: 'Donations' },
 	{ to: '/gallery', label: 'Gallery' },

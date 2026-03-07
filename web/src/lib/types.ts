@@ -27,6 +27,9 @@ export interface HomeHeroSlide {
 	title?: string
 	subtitle?: string
 	imageUrl?: string
+	ctaText?: string
+	ctaUrl?: string
+	accentColor?: string
 	order?: number
 	active?: boolean
 }

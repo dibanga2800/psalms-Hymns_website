@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
+import { PageSEO } from '@/components/common/PageSEO'
 import {
 	ArrowRight,
 	Banknote,
@@ -34,6 +35,7 @@ interface LocalHomeSlide {
 	title: string
 	scripture: string
 	subtitle: string
+	imageUrl: string
 }
 
 interface FeatureCard {
@@ -59,34 +61,39 @@ const localSlides: LocalHomeSlide[] = [
 		title: 'My Month of Rejoicing',
 		scripture: '"Rejoice in the Lord always." – Philippians 4:4',
 		subtitle: 'Monthly theme – replace from Sanity when ready.',
+		imageUrl: '/pstor.jpeg',
 	},
 	{
 		id: 2,
-		month: 'Placeholder Month',
+		month: 'Season of Victory',
 		title: 'My Month of Victory',
-		scripture: '"Thanks be to God, who gives us the victory…" – 1 Cor 15:57',
+		scripture: '"Thanks be to God, who gives us the victory." – 1 Corinthians 15:57',
 		subtitle: 'Use this slide for a second monthly theme.',
+		imageUrl: '/choir.png',
 	},
 	{
 		id: 3,
-		month: 'Placeholder Month',
+		month: 'Season of Restoration',
 		title: 'My Month of Restoration',
-		scripture: '"I will restore to you the years…" – Joel 2:25',
+		scripture: '"I will restore to you the years the locusts have eaten." – Joel 2:25',
 		subtitle: 'Use this slide for another seasonal emphasis.',
+		imageUrl: '/women fellowship.png',
 	},
 	{
 		id: 4,
-		month: 'Placeholder Month',
+		month: 'Season of Breakthrough',
 		title: 'My Month of Breakthrough',
-		scripture: '"Is anything too hard for the LORD?" – Genesis 18:14',
+		scripture: '"Is anything too hard for the Lord?" – Genesis 18:14',
 		subtitle: 'Update copy, colours and imagery from Sanity later.',
+		imageUrl: '/men fellowship.png',
 	},
 	{
 		id: 5,
-		month: 'Placeholder Month',
+		month: 'Season of Divine Help',
 		title: 'My Month of Divine Help',
-		scripture: '"God is our refuge and strength…" – Psalm 46:1',
+		scripture: '"God is our refuge and strength, a very present help in trouble." – Psalm 46:1',
 		subtitle: 'Fifth slide – content fully CMS-driven in future.',
+		imageUrl: '/youth ministry.png',
 	},
 ]
 
@@ -177,7 +184,9 @@ export const Home = () => {
 	const [activeIndex, setActiveIndex] = useState(0)
 	const [prevIndex, setPrevIndex] = useState<number | null>(null)
 	const [isPaused, setIsPaused] = useState(false)
+	const [slideProgress, setSlideProgress] = useState(0)
 	const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+	const progressRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
 	const heroSlidesFromCms: (HomeHeroSlide | null | undefined)[] = data?.heroSlides ?? []
 	const activeHeroSlides: HomeHeroSlide[] = heroSlidesFromCms.filter(
@@ -195,6 +204,9 @@ export const Home = () => {
 				title: cms?.title ?? '',
 				scripture: cms?.subtitle ?? '',
 				imageUrl: cms?.imageUrl,
+				ctaText: cms?.ctaText,
+				ctaUrl: cms?.ctaUrl,
+				accentColor: cms?.accentColor,
 			}
 		}
 		const local = localSlides[index % localSlides.length]
@@ -202,7 +214,10 @@ export const Home = () => {
 			month: local.month,
 			title: local.title,
 			scripture: local.scripture,
-			imageUrl: undefined,
+			imageUrl: local.imageUrl,
+			ctaText: undefined,
+			ctaUrl: undefined,
+			accentColor: undefined,
 		}
 	}
 
@@ -236,6 +251,23 @@ export const Home = () => {
 		}
 	}, [startTimer])
 
+	useEffect(() => {
+		setSlideProgress(0)
+		if (isPaused || totalSlides <= 1) return
+		if (progressRef.current) clearInterval(progressRef.current)
+		const steps = 200
+		const stepMs = SLIDE_INTERVAL_MS / steps
+		let current = 0
+		progressRef.current = setInterval(() => {
+			current += 1
+			setSlideProgress(current)
+			if (current >= steps && progressRef.current) clearInterval(progressRef.current)
+		}, stepMs)
+		return () => {
+			if (progressRef.current) clearInterval(progressRef.current)
+		}
+	}, [activeIndex, isPaused, totalSlides])
+
 	const handleNext = () => {
 		goToSlide((activeIndex + 1) % totalSlides)
 		startTimer()
@@ -259,7 +291,7 @@ export const Home = () => {
 		}
 	}
 
-	const heading = data?.heroHeading ?? 'Hope in Christ. Hope for All.'
+	const heading = data?.heroHeading ?? 'A Place of Praise. A Home of Worship.'
 	const currentSlide = getSlideData(activeIndex)
 	const events: EventSummary[] = data?.upcomingEvents ?? []
 	const posts: PostSummary[] = data?.highlightedPosts ?? []
@@ -302,156 +334,210 @@ export const Home = () => {
 	const fullBleed = 'relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen'
 	const negateTopPadding = '-mt-6 sm:-mt-8 lg:-mt-10'
 
-	const sectionEyebrow = 'text-[11px] font-bold uppercase tracking-[0.25em] text-rccg-red'
-	const sectionHeading = 'mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl'
+	const sectionEyebrow = 'text-xs font-bold uppercase tracking-[0.25em] text-rccg-red'
+	const sectionHeading = 'mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl'
 
 	return (
 		<div>
+			<PageSEO
+				title='Welcome'
+				description='RCCG Psalms & Hymns Parish — a Spirit-led, Bible-believing Pentecostal church in Cobridge, Stoke-on-Trent. Sunday worship service 3–5 pm. Everyone is welcome. Part of the Redeemed Christian Church of God.'
+				path='/'
+				keywords='RCCG Psalms and Hymns Parish homepage, church Stoke-on-Trent home, Redeemed Christian Church of God homepage, Pentecostal church homepage Cobridge'
+			/>
 
-			{/* ═══════════════════════════════════════════════
-			    HERO SLIDER
-			    ═══════════════════════════════════════════════ */}
-			{showHero && (
-				<section
-					className={`${fullBleed} ${negateTopPadding} overflow-hidden bg-rccg-ink`}
-					aria-label='Hero'
+		{/* ═══════════════════════════════════════════════
+		    HERO SLIDER
+		    ═══════════════════════════════════════════════ */}
+		{showHero && (
+			<section
+				className={`${fullBleed} ${negateTopPadding} relative overflow-hidden bg-slate-950`}
+				style={{ minHeight: 'calc(92vh - 0px)' }}
+				aria-label='Hero'
+			>
+				{/* ── Background image layers with Ken Burns ── */}
+				{Array.from({ length: totalSlides }).map((_, i) => {
+					const slide = getSlideData(i)
+					const isActive = i === activeIndex
+					const isLeaving = i === prevIndex
+					return (
+						<div
+							key={hasCmsSlides ? (activeHeroSlides[i]?._id ?? i) : i}
+							className='absolute inset-0 bg-cover bg-center bg-no-repeat'
+							style={{
+								backgroundImage: slide.imageUrl ? `url('${slide.imageUrl}')` : undefined,
+								backgroundColor: slide.imageUrl ? undefined : '#0f172a',
+								opacity: isActive ? 1 : isLeaving ? 0 : 0,
+								transform: isActive ? 'scale(1.07)' : 'scale(1)',
+								transition: isLeaving
+									? `opacity 1400ms ease`
+									: isActive
+									? `opacity 1400ms ease, transform 12s ease-out`
+									: 'none',
+							}}
+							aria-hidden={!isActive}
+						/>
+					)
+				})}
+
+				{/* ── Multi-layer cinematic overlays ── */}
+				{/* Left-heavy darkness for text readability */}
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/65 to-slate-950/15' />
+				{/* Bottom fade for controls area */}
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40' />
+				{/* Warm maroon tint for brand identity */}
+				<div className='pointer-events-none absolute inset-0 bg-gradient-to-br from-rccg-maroon/25 via-transparent to-transparent' />
+				{/* Subtle vignette edges */}
+				<div className='pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.45)_100%)]' />
+
+				{/* ── MAIN CONTENT ── */}
+				<div
+					className='relative z-10 flex flex-col'
+					style={{ minHeight: 'calc(92vh - 0px)' }}
 				>
-					{/* Background image layers */}
-					{totalSlides > 0 &&
-						Array.from({ length: totalSlides }).map((_, i) => {
-							const slide = getSlideData(i)
-							const imgUrl = slide.imageUrl ?? `/images/hero-placeholder-${(i % 3) + 1}.jpg`
-							const isActive = i === activeIndex
-							const isLeaving = i === prevIndex
-							return (
-								<div
-									key={hasCmsSlides ? activeHeroSlides[i]?._id ?? i : i}
-									className={`absolute inset-0 bg-cover bg-center transition-opacity ${
-										isActive
-											? 'opacity-100 duration-[1200ms]'
-											: isLeaving
-											? 'opacity-0 duration-[1200ms]'
-											: 'opacity-0 duration-0'
-									}`}
-									style={{
-										backgroundImage: `url('${imgUrl}')`,
-										transform: isActive ? 'scale(1.04)' : 'scale(1)',
-										transition: `opacity ${TRANSITION_DURATION_MS}ms ease, transform 8s ease-out`,
-									}}
-									aria-hidden={!isActive}
-								/>
-							)
-						})}
+					{/* Top identity bar */}
+					<div className='container flex items-center justify-between py-5 sm:py-6'>
+						<div className='flex items-center gap-3'>
+							<span className='h-px w-6 bg-rccg-gold/50' aria-hidden />
+							<span className='hidden text-[10px] font-bold uppercase tracking-[0.35em] text-white/45 sm:block'>
+								RCCG Psalms &amp; Hymns Parish · Stoke-on-Trent
+							</span>
+						</div>
+						{isLoading && (
+							<span className='text-[10px] text-white/30'>Loading…</span>
+						)}
+						{isError && (
+							<span className='text-[10px] text-amber-400/70'>
+								Showing defaults
+							</span>
+						)}
+					</div>
 
-					{/* Gradient overlays */}
-					<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-rccg-ink/90 via-rccg-ink/50 to-rccg-ink/10' />
-					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-rccg-ink/70 via-transparent to-transparent' />
+					{/* ── Slide text content ── */}
+					<div className='container flex flex-1 items-center'>
+						<div className='w-full max-w-3xl space-y-7 py-8 sm:py-12'>
 
-					{/* Hero content */}
-					<div className='relative z-10 flex min-h-[72vh] flex-col justify-center'>
-						<div className='container'>
-							<div className='max-w-2xl space-y-6'>
-								{currentSlide.month && (
-									<span className='inline-flex items-center gap-2 rounded-full bg-rccg-red/90 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-white shadow-sm'>
+							{/* Month / season pill */}
+							{currentSlide.month && (
+								<div className='flex items-center gap-3'>
+									<span className='h-px w-10 bg-rccg-gold' aria-hidden />
+									<span className='text-xs font-bold uppercase tracking-[0.35em] text-rccg-gold'>
 										{currentSlide.month}
 									</span>
-								)}
-								<h1
-									className='text-4xl font-extrabold leading-[1.08] text-white drop-shadow-sm sm:text-5xl md:text-[3.75rem]'
-									aria-live='polite'
-								>
-									{currentSlide.title}
-								</h1>
-								{currentSlide.scripture && (
-									<p className='max-w-xl border-l-[3px] border-rccg-gold pl-4 text-sm italic leading-relaxed text-white/85 sm:text-base'>
-										{currentSlide.scripture}
-									</p>
-								)}
-								<p className='max-w-lg text-sm leading-relaxed text-white/60 sm:text-[15px]'>
-									{heading}
-								</p>
-								<div className='flex flex-wrap gap-3 pt-2'>
-									<Link
-										to='/service-times'
-										className='inline-flex items-center gap-2 rounded-full bg-rccg-red px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition hover:bg-rccg-maroon hover:shadow-xl'
-									>
-										Plan Your Visit
-										<ArrowRight className='h-4 w-4' aria-hidden />
-									</Link>
-									<Link
-										to='/contact'
-										className='inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20'
-									>
-										Request Prayer
-									</Link>
-								</div>
-								{isLoading && <p className='text-xs text-white/40'>Loading…</p>}
-								{isError && (
-									<p className='text-xs text-amber-300/80'>
-										Unable to load live content — showing defaults.
-									</p>
-								)}
-							</div>
-
-							{/* Slide controls */}
-							{totalSlides > 1 && (
-								<div className='mt-14 flex items-center justify-between'>
-									<div className='flex items-center gap-3'>
-										{Array.from({ length: totalSlides }).map((_, i) => (
-											<button
-												key={i}
-												type='button'
-												onClick={() => handleDotClick(i)}
-												className={`h-0.5 rounded-full transition-all duration-500 ${
-													i === activeIndex
-														? 'w-10 bg-rccg-gold'
-														: 'w-5 bg-white/25 hover:bg-white/50'
-												}`}
-												aria-label={`Go to slide ${i + 1}`}
-												aria-current={i === activeIndex ? 'true' : undefined}
-											/>
-										))}
-										<span className='ml-2 text-[11px] font-medium tabular-nums text-white/35'>
-											{String(activeIndex + 1).padStart(2, '0')} /{' '}
-											{String(totalSlides).padStart(2, '0')}
-										</span>
-									</div>
-									<div className='flex items-center gap-2'>
-										<button
-											type='button'
-											onClick={togglePause}
-											className='flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white/60 transition hover:border-white/50 hover:text-white'
-											aria-label={isPaused ? 'Resume slideshow' : 'Pause slideshow'}
-										>
-											{isPaused ? (
-												<Play className='h-3.5 w-3.5' aria-hidden />
-											) : (
-												<Pause className='h-3.5 w-3.5' aria-hidden />
-											)}
-										</button>
-										<button
-											type='button'
-											onClick={handlePrev}
-											className='flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/15'
-											aria-label='Previous slide'
-										>
-											<ChevronLeft className='h-4 w-4' aria-hidden />
-										</button>
-										<button
-											type='button'
-											onClick={handleNext}
-											className='flex h-10 w-10 items-center justify-center rounded-full bg-rccg-gold text-white transition hover:bg-accent-600'
-											aria-label='Next slide'
-										>
-											<ChevronRight className='h-4 w-4' aria-hidden />
-										</button>
-									</div>
 								</div>
 							)}
+
+							{/* Main title */}
+							<h1
+								className='text-5xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl'
+								aria-live='polite'
+							>
+								{currentSlide.title}
+							</h1>
+
+							{/* Scripture quote */}
+							{currentSlide.scripture && (
+								<div className='flex items-start gap-4 max-w-2xl'>
+									<span className='mt-1.5 h-14 w-[3px] shrink-0 rounded-full bg-rccg-gold' aria-hidden />
+									<p className='text-lg italic leading-relaxed text-white/85 sm:text-xl'>
+										{currentSlide.scripture}
+									</p>
+								</div>
+							)}
+
+							{/* Tagline */}
+							<p className='max-w-lg text-base leading-relaxed text-white/65 sm:text-lg'>
+								{heading}
+							</p>
+
+							{/* CTAs */}
+							<div className='flex flex-wrap gap-4 pt-1'>
+								<Link
+									to={currentSlide.ctaUrl ?? '/service-times'}
+									className='inline-flex items-center gap-2.5 rounded-full bg-rccg-gold px-8 py-4 text-sm font-bold uppercase tracking-[0.15em] text-rccg-maroon shadow-2xl shadow-rccg-gold/20 transition hover:bg-amber-400 hover:shadow-amber-500/30'
+								>
+									{currentSlide.ctaText ?? 'Plan Your Visit'}
+									<ArrowRight className='h-4 w-4' aria-hidden />
+								</Link>
+								<Link
+									to='/prayer-request'
+									className='inline-flex items-center gap-2.5 rounded-full border border-white/30 bg-white/8 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/50 hover:bg-white/15'
+								>
+									Request Prayer
+								</Link>
+							</div>
 						</div>
 					</div>
-				</section>
-			)}
+
+					{/* ── Bottom controls ── */}
+					{totalSlides > 1 && (
+						<div className='container pb-8 sm:pb-10'>
+							<div className='flex items-center justify-between gap-4'>
+
+								{/* Progress bars */}
+								<div className='flex flex-1 items-center gap-2' role='tablist' aria-label='Slide controls'>
+									{Array.from({ length: totalSlides }).map((_, i) => (
+										<button
+											key={i}
+											type='button'
+											role='tab'
+											aria-selected={i === activeIndex}
+											aria-label={`Slide ${i + 1}`}
+											onClick={() => handleDotClick(i)}
+											className='relative h-[3px] flex-1 max-w-[60px] overflow-hidden rounded-full bg-white/20 transition-all hover:bg-white/35'
+										>
+											{i === activeIndex && (
+												<span
+													className='absolute left-0 top-0 h-full rounded-full bg-rccg-gold transition-none'
+													style={{ width: `${(slideProgress / 200) * 100}%` }}
+												/>
+											)}
+											{i < activeIndex && (
+												<span className='absolute left-0 top-0 h-full w-full rounded-full bg-white/50' />
+											)}
+										</button>
+									))}
+									<span className='ml-1 shrink-0 text-xs font-semibold tabular-nums text-white/50'>
+										{String(activeIndex + 1).padStart(2, '0')}&nbsp;/&nbsp;{String(totalSlides).padStart(2, '0')}
+									</span>
+								</div>
+
+								{/* Nav buttons */}
+								<div className='flex shrink-0 items-center gap-2'>
+									<button
+										type='button'
+										onClick={togglePause}
+										className='flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/50 transition hover:border-white/40 hover:text-white'
+										aria-label={isPaused ? 'Resume slideshow' : 'Pause slideshow'}
+									>
+										{isPaused
+											? <Play className='h-3.5 w-3.5' aria-hidden />
+											: <Pause className='h-3.5 w-3.5' aria-hidden />
+										}
+									</button>
+									<button
+										type='button'
+										onClick={handlePrev}
+										className='flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10'
+										aria-label='Previous slide'
+									>
+										<ChevronLeft className='h-5 w-5' aria-hidden />
+									</button>
+									<button
+										type='button'
+										onClick={handleNext}
+										className='flex h-10 w-10 items-center justify-center rounded-full bg-rccg-gold text-rccg-maroon shadow-lg shadow-rccg-gold/20 transition hover:bg-amber-400'
+										aria-label='Next slide'
+									>
+										<ChevronRight className='h-5 w-5' aria-hidden />
+									</button>
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
+			</section>
+		)}
 
 			{/* ═══════════════════════════════════════════════
 			    QUICK LINKS STRIP
@@ -477,14 +563,14 @@ export const Home = () => {
 											<Icon className={`h-6 w-6 ${card.iconColor}`} aria-hidden />
 										</div>
 										<div className='min-w-0'>
-											<p className='text-sm font-bold uppercase tracking-[0.16em] text-slate-800'>
+											<p className='text-base font-bold uppercase tracking-[0.14em] text-slate-800'>
 												{card.title}
 											</p>
-											<p className='mt-1.5 text-sm leading-relaxed text-slate-600'>
+											<p className='mt-1.5 text-base leading-relaxed text-slate-600'>
 												{card.description}
 											</p>
 											<span
-												className={`mt-3 inline-flex items-center gap-1 text-sm font-semibold ${card.iconColor}`}
+												className={`mt-3 inline-flex items-center gap-1 text-sm font-bold ${card.iconColor}`}
 											>
 												{card.linkText}
 												<ArrowRight className='h-3.5 w-3.5 transition group-hover:translate-x-0.5' aria-hidden />
@@ -498,68 +584,123 @@ export const Home = () => {
 				</section>
 			)}
 
-			{/* ═══════════════════════════════════════════════
-			    WELCOME / ABOUT OUR PARISH
-			    ═══════════════════════════════════════════════ */}
-			{showWelcome && (
-				<section
-					className={`${fullBleed} bg-rccg-cream py-16 sm:py-20 lg:py-28`}
-					aria-labelledby='welcome-heading'
-				>
-					<div className='container'>
-						<div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-20'>
-							{/* Image side */}
-							<div className='relative order-last lg:order-first'>
-								<div
-									className='absolute -left-4 -top-4 h-full w-full rounded-3xl bg-rccg-red/8 lg:-left-6 lg:-top-6'
-									aria-hidden
-								/>
-								<div
-									className='absolute -bottom-4 -right-4 h-2/3 w-2/3 rounded-3xl bg-rccg-gold/10 lg:-bottom-6 lg:-right-6'
-									aria-hidden
-								/>
+		{/* ═══════════════════════════════════════════════
+		    WELCOME / ABOUT OUR PARISH
+		    ═══════════════════════════════════════════════ */}
+		{showWelcome && (
+			<section
+				className={`${fullBleed} bg-slate-50 py-16 sm:py-20 lg:py-24`}
+				aria-labelledby='welcome-heading'
+			>
+				<div className='container'>
+					<div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-24'>
+
+						{/* ── LEFT: Framed portrait ── */}
+						<div className='relative order-last mx-auto w-full max-w-md lg:order-first lg:max-w-none'>
+							{/* Decorative offset block — top-left */}
+							<div
+								className='absolute -left-4 -top-4 h-3/4 w-3/4 rounded-2xl bg-rccg-red/8 lg:-left-6 lg:-top-6'
+								aria-hidden
+							/>
+							{/* Decorative offset block — bottom-right (gold) */}
+							<div
+								className='absolute -bottom-4 -right-4 h-1/2 w-1/2 rounded-2xl bg-rccg-gold/15 lg:-bottom-6 lg:-right-6'
+								aria-hidden
+							/>
+
+							{/* Portrait frame */}
+							<div className='relative overflow-hidden rounded-2xl shadow-2xl'>
 								<img
 									src={welcomeImageUrl}
-									alt='Pastor of RCCG Psalms & Hymns Parish'
-									className='relative aspect-[4/5] w-full rounded-3xl object-cover object-top shadow-2xl'
+									alt='Pastor Emmanuel Adegorusi — Lead Pastor, RCCG Psalms & Hymns Parish'
+									className='aspect-[3/4] w-full object-cover object-center'
 								/>
-							</div>
-
-							{/* Text side */}
-							<div className='space-y-5'>
-								<p className={sectionEyebrow}>About Our Parish</p>
-								<h2
-									id='welcome-heading'
-									className='text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl lg:text-[2.6rem]'
-								>
-									{welcomeTitle}
-								</h2>
-								<p className='text-[15px] leading-relaxed text-slate-600'>{welcomeMessage}</p>
-								<p className='text-[15px] leading-relaxed text-slate-600'>
-									The Redeemed Christian Church of God was established in 1952 and currently
-									attracts membership of over 3.5 million people across the United Kingdom, the
-									United States, Nigeria, and over 30 nations worldwide.
-								</p>
-								<div className='flex flex-wrap gap-3 pt-2'>
-									<Link
-										to='/about'
-										className='inline-flex items-center gap-2 rounded-full bg-rccg-red px-7 py-3 text-sm font-bold text-white shadow transition hover:bg-rccg-maroon'
-									>
-										Learn more about us
-										<ArrowRight className='h-4 w-4' aria-hidden />
-									</Link>
-									<Link
-										to='/service-times'
-										className='inline-flex items-center gap-2 rounded-full border border-slate-300 px-7 py-3 text-sm font-semibold text-slate-700 transition hover:border-rccg-red hover:text-rccg-red'
-									>
-										Service times
-									</Link>
+								{/* Bottom name overlay */}
+								<div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950/85 to-transparent px-5 pb-5 pt-10'>
+									<p className='text-[10px] font-bold uppercase tracking-[0.28em] text-rccg-gold'>
+										Lead Pastor
+									</p>
+									<p className='mt-0.5 text-lg font-extrabold text-white'>
+										Pastor Emmanuel Adegorusi
+									</p>
 								</div>
 							</div>
 						</div>
+
+						{/* ── RIGHT: Content ── */}
+						<div className='space-y-6'>
+
+							{/* Eyebrow */}
+							<div className='flex items-center gap-3'>
+								<span className='h-px w-8 bg-rccg-red' aria-hidden />
+								<p className={sectionEyebrow}>About Our Parish</p>
+							</div>
+
+							{/* Heading */}
+							<h2
+								id='welcome-heading'
+								className='text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem]'
+							>
+								{welcomeTitle}
+							</h2>
+
+							{/* Pastor pull-quote */}
+							<blockquote className='border-l-4 border-rccg-gold pl-5'>
+								<p className='text-lg italic leading-relaxed text-slate-500'>
+									&ldquo;We are a church for everyone — come as you are, and be changed by the presence of God.&rdquo;
+								</p>
+								<cite className='mt-2 block text-xs font-bold not-italic uppercase tracking-[0.2em] text-rccg-red'>
+									— Pastor Emmanuel Adegorusi
+								</cite>
+							</blockquote>
+
+							{/* Body */}
+							<p className='text-base leading-relaxed text-slate-600 sm:text-lg'>
+								{welcomeMessage}
+							</p>
+
+							{/* Stats strip */}
+							<div className='grid grid-cols-3 gap-3 border-y border-slate-200 py-6'>
+								{[
+									{ value: 'Sunday', label: 'Weekly Service', sub: '3:00 – 5:00 pm' },
+									{ value: '30+', label: 'Nations Represented', sub: 'In our congregation' },
+									{ value: '1952', label: 'RCCG Founded', sub: 'Worldwide family' },
+								].map((stat) => (
+									<div key={stat.label} className='text-center'>
+										<p className='text-xl font-extrabold text-rccg-red sm:text-2xl'>{stat.value}</p>
+										<p className='mt-1 text-xs font-semibold text-slate-700'>{stat.label}</p>
+										<p className='text-[11px] text-slate-400'>{stat.sub}</p>
+									</div>
+								))}
+							</div>
+
+							{/* CTAs */}
+							<div className='flex flex-wrap gap-3 pt-1'>
+								<Link
+									to='/about'
+									className='inline-flex items-center gap-2 rounded-full bg-rccg-red px-7 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-rccg-maroon'
+								>
+									Our Story
+									<ArrowRight className='h-4 w-4' aria-hidden />
+								</Link>
+								<Link
+									to='/leadership'
+									className='inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-rccg-red hover:text-rccg-red'
+								>
+									Meet the Team
+								</Link>
+								<Link
+									to='/service-times'
+									className='inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-7 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-rccg-red hover:text-rccg-red'
+								>
+									Service Times
+								</Link>
+							</div>
+						</div>
 					</div>
-				</section>
-			)}
+				</div>
+			</section>
+		)}
 
 			{/* ═══════════════════════════════════════════════
 			    OUR MISSION + UPCOMING EVENTS
@@ -575,11 +716,11 @@ export const Home = () => {
 						<div className='lg:col-span-2'>
 							<p className={sectionEyebrow}>Who We Are</p>
 							<h2 className={sectionHeading}>Our Mission &amp; Vision</h2>
-							<p className='mt-4 text-base leading-relaxed text-slate-600 sm:text-[17px]'>
-								At Psalms &amp; Hymns Parish, our desire is to build a Christ-centred community
-								where people encounter God, grow in the Word, and are equipped to impact their
-								families, workplaces, and the nations.
-							</p>
+						<p className='mt-4 text-lg leading-relaxed text-slate-600'>
+							At Psalms &amp; Hymns Parish, our desire is to build a Christ-centred community
+							where people encounter God, grow in the Word, and are equipped to impact their
+							families, workplaces, and the nations.
+						</p>
 
 							{/* Value pillars */}
 							<div className='mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2'>
@@ -591,7 +732,7 @@ export const Home = () => {
 										<span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rccg-red/10'>
 											<Icon className='h-4 w-4 text-rccg-red' aria-hidden />
 										</span>
-										<span className='text-sm font-semibold text-slate-700'>{label}</span>
+										<span className='text-base font-semibold text-slate-700'>{label}</span>
 									</div>
 								))}
 							</div>
@@ -643,12 +784,12 @@ export const Home = () => {
 															</div>
 														)}
 														<div className='min-w-0 flex-1'>
-															<p className='font-semibold text-slate-900 group-hover:text-rccg-red sm:text-[15px]'>
+															<p className='text-base font-semibold text-slate-900 group-hover:text-rccg-red'>
 																{evt.title}
 															</p>
 															{evt.startDate && (
-																<p className='mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-500'>
-																	<Calendar className='h-3 w-3' aria-hidden />
+																<p className='mt-1.5 flex items-center gap-1.5 text-sm text-slate-500'>
+																	<Calendar className='h-3.5 w-3.5' aria-hidden />
 																	{new Date(evt.startDate).toLocaleDateString('en-GB', {
 																		weekday: 'short',
 																		day: 'numeric',
@@ -663,13 +804,13 @@ export const Home = () => {
 																</p>
 															)}
 															{evt.location && (
-																<p className='mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500'>
-																	<MapPin className='h-3 w-3' aria-hidden />
+																<p className='mt-0.5 flex items-center gap-1.5 text-sm text-slate-500'>
+																	<MapPin className='h-3.5 w-3.5' aria-hidden />
 																	{evt.location}
 																</p>
 															)}
 															{evt.excerpt && (
-																<p className='mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500'>
+																<p className='mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500'>
 																	{evt.excerpt}
 																</p>
 															)}
@@ -719,15 +860,15 @@ export const Home = () => {
 				className={`${fullBleed} bg-rccg-red py-12 sm:py-14`}
 				aria-label='Scripture'
 			>
-				<div className='container text-center'>
-					<p className='mx-auto max-w-3xl text-base font-medium italic leading-relaxed text-white/90 sm:text-lg sm:leading-loose'>
-						&ldquo;For I know the plans I have for you, declares the Lord, plans to prosper you and
-						not to harm you, plans to give you hope and a future.&rdquo;
-					</p>
-					<p className='mt-3 text-[11px] font-bold uppercase tracking-[0.28em] text-white/60'>
-						Jeremiah 29:11
-					</p>
-				</div>
+			<div className='container text-center'>
+				<p className='mx-auto max-w-3xl text-xl font-medium italic leading-relaxed text-white sm:text-2xl sm:leading-loose'>
+					&ldquo;For I know the plans I have for you, declares the Lord, plans to prosper you and
+					not to harm you, plans to give you hope and a future.&rdquo;
+				</p>
+				<p className='mt-4 text-sm font-bold uppercase tracking-[0.28em] text-white/70'>
+					Jeremiah 29:11
+				</p>
+			</div>
 			</section>
 
 			{/* ═══════════════════════════════════════════════
@@ -742,10 +883,10 @@ export const Home = () => {
 						<div>
 							<p className={sectionEyebrow}>Our Divisions</p>
 							<h2 className={sectionHeading}>Our Ministries</h2>
-							<p className='mx-auto mt-3 max-w-xl text-base leading-relaxed text-slate-600 sm:mx-0'>
-								There is a place for everyone — connect, serve and grow at Psalms &amp; Hymns
-								Parish.
-							</p>
+						<p className='mx-auto mt-3 max-w-xl text-lg leading-relaxed text-slate-600 sm:mx-0'>
+							There is a place for everyone — connect, serve and grow at Psalms &amp; Hymns
+							Parish.
+						</p>
 						</div>
 						<Link
 							to='/ministries'
@@ -781,12 +922,12 @@ export const Home = () => {
 								</div>
 								{/* Text below image */}
 								<div className='flex flex-1 flex-col p-5 text-center'>
-									<h3 className='text-sm font-bold uppercase tracking-[0.12em] text-slate-900'>
-										{ministry.name}
-									</h3>
-									<p className='mt-2 text-sm leading-relaxed text-slate-600'>
-										{ministry.description}
-									</p>
+								<h3 className='text-base font-bold uppercase tracking-[0.1em] text-slate-900'>
+									{ministry.name}
+								</h3>
+								<p className='mt-2 text-base leading-relaxed text-slate-600'>
+									{ministry.description}
+								</p>
 									<span className='mt-4 inline-flex items-center justify-center gap-1 text-sm font-semibold text-rccg-red opacity-0 transition-opacity duration-300 group-hover:opacity-100'>
 										Discover more <ArrowRight className='h-3.5 w-3.5' aria-hidden />
 									</span>
@@ -894,21 +1035,21 @@ export const Home = () => {
 												<span className='inline-flex w-fit items-center rounded-full bg-rccg-red/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rccg-red'>
 													{post.category ?? 'Blog Post'}
 												</span>
-												<p className='mt-2 line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-rccg-red'>
-													{post.title}
-												</p>
-												<div className='mt-auto pt-3 text-[11px] text-slate-400'>
-													{post.author && (
-														<span className='font-semibold text-slate-500'>{post.author}</span>
-													)}
-													{post.author && post.date && <span> · </span>}
-													{post.date &&
-														new Date(post.date).toLocaleDateString('en-GB', {
-															day: 'numeric',
-															month: 'short',
-															year: 'numeric',
-														})}
-												</div>
+									<p className='mt-2 line-clamp-2 text-base font-bold leading-snug text-slate-900 group-hover:text-rccg-red'>
+												{post.title}
+											</p>
+											<div className='mt-auto pt-3 text-xs text-slate-400'>
+												{post.author && (
+													<span className='font-semibold text-slate-500'>{post.author}</span>
+												)}
+												{post.author && post.date && <span> · </span>}
+												{post.date &&
+													new Date(post.date).toLocaleDateString('en-GB', {
+														day: 'numeric',
+														month: 'short',
+														year: 'numeric',
+													})}
+											</div>
 											</div>
 										</Link>
 									))}
@@ -1136,10 +1277,10 @@ export const Home = () => {
 						You are welcome here.{' '}
 						<span className='text-rccg-gold'>Make this your church family.</span>
 					</h2>
-					<p className='mx-auto mt-5 max-w-lg text-[15px] leading-relaxed text-slate-400'>
-						Whether you are brand new to faith or looking for a church home, Psalms &amp; Hymns
-						Parish is a place to belong, grow and serve.
-					</p>
+				<p className='mx-auto mt-5 max-w-lg text-lg leading-relaxed text-white/80'>
+					Whether you are brand new to faith or looking for a church home, Psalms &amp; Hymns
+					Parish is a place to belong, grow and serve.
+				</p>
 					<div className='mt-9 flex flex-wrap items-center justify-center gap-4'>
 						<Link
 							to='/membership'

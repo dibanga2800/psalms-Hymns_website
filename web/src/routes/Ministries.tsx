@@ -1,3 +1,5 @@
+import { PageSEO } from '@/components/common/PageSEO'
+
 interface MinistryCard {
 	name: string
 	description: string
@@ -14,7 +16,7 @@ const ministries: MinistryCard[] = [
 		focus: 'Fellowship, discipleship and mentoring for men of all ages.',
 	},
 	{
-		name: "Women&apos;s Fellowship",
+		name: "Women's Fellowship",
 		description:
 			'Daughters of Zion growing together in the Word, prayer and godly relationships.',
 		imageUrl: '/women fellowship.png',
@@ -39,14 +41,20 @@ const ministries: MinistryCard[] = [
 export const Ministries = () => {
 	return (
 		<div className='space-y-12 sm:space-y-14'>
+			<PageSEO
+				title='Our Ministries'
+				description="Explore the ministries at RCCG Psalms & Hymns Parish — Men's Fellowship, Women's Fellowship, Choir, and Youth Ministry. Get involved and grow in faith in Stoke-on-Trent."
+				path='/ministries'
+				keywords="church ministries Stoke-on-Trent, men's fellowship Cobridge, women's fellowship RCCG, youth ministry Stoke-on-Trent, choir church Cobridge, get involved Christian church Staffordshire"
+			/>
 			<section className='space-y-4 text-center sm:text-left'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.25em] text-rccg-red'>
 					Get Involved
 				</p>
-				<h1 className='text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl'>
+				<h1 className='text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl'>
 					Our Ministries
 				</h1>
-				<p className='mx-auto max-w-3xl text-sm leading-relaxed text-slate-600 sm:mx-0 sm:text-[15px]'>
+				<p className='mx-auto max-w-3xl text-base leading-relaxed text-slate-600 sm:mx-0 sm:text-lg'>
 					Ministries at Psalms &amp; Hymns Parish exist to help you grow in Christ,
 					build meaningful relationships, and serve others with your gifts. Explore
 					the different areas you can connect with below.
@@ -69,13 +77,13 @@ export const Ministries = () => {
 								/>
 							</div>
 							<div className='flex flex-1 flex-col p-5'>
-								<h2 className='text-sm font-semibold uppercase tracking-[0.14em] text-slate-900'>
+								<h2 className='text-base font-semibold uppercase tracking-[0.14em] text-slate-900'>
 									{ministry.name}
 								</h2>
-								<p className='mt-2 text-xs leading-relaxed text-slate-600'>
+								<p className='mt-2 text-sm leading-relaxed text-slate-600'>
 									{ministry.description}
 								</p>
-								<p className='mt-3 text-[11px] leading-relaxed text-slate-500'>
+								<p className='mt-3 text-sm leading-relaxed text-slate-500'>
 									{ministry.focus}
 								</p>
 							</div>
@@ -86,4 +94,3 @@ export const Ministries = () => {
 		</div>
 	)
 }
-

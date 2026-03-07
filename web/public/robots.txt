@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rccgpsalmshymns.org.uk/sitemap.xml

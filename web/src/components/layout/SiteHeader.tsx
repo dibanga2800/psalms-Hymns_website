@@ -18,7 +18,7 @@ const navItems: NavItem[] = [
 		label: 'About',
 		to: '/about',
 		items: [
-			{ label: 'Who We Are', to: '/about' },
+			{ label: 'Who We Are', to: '/who-we-are' },
 			{ label: 'Leadership', to: '/leadership' },
 			{ label: 'Ministries', to: '/ministries' },
 		],

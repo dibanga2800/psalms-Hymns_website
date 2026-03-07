@@ -1,4 +1,5 @@
 import { Mail, Phone } from 'lucide-react'
+import { PageSEO } from '@/components/common/PageSEO'
 
 interface LeaderProfile {
 	name: string
@@ -24,13 +25,13 @@ const supportLeadership: LeaderProfile[] = [
 	{
 		name: 'Pastor Chinedu Okanume',
 		role: 'Head of Welfare & Outreach',
-		bio: 'Pastor Chinedu oversees the church\'s welfare initiatives and coordinates community outreach programmes, ensuring no one in the congregation goes unnoticed or unsupported.',
+		bio: "Pastor Chinedu oversees the church's welfare initiatives and coordinates community outreach programmes, ensuring no one in the congregation goes unnoticed or unsupported.",
 		imageUrl: '/placeholder-leader.png',
 	},
 	{
 		name: 'Deaconess Titilayo Adegorusi',
-		role: 'Women\'s Fellowship Leader',
-		bio: 'Deaconess Titilayo leads the Women\'s Fellowship with grace and authority, guiding women in the parish to discover their identity and calling in Christ.',
+		role: "Women's Fellowship Leader",
+		bio: "Deaconess Titilayo leads the Women's Fellowship with grace and authority, guiding women in the parish to discover their identity and calling in Christ.",
 		imageUrl: '/placeholder-leader.png',
 	},
 	{
@@ -42,7 +43,7 @@ const supportLeadership: LeaderProfile[] = [
 	{
 		name: 'Minister Dare Akinlawon',
 		role: 'Worship Leader',
-		bio: 'Minister Dare leads the choir and instrumentalists, stewarding the worship culture of the church with excellence, humility, and a deep love for God\'s presence.',
+		bio: "Minister Dare leads the choir and instrumentalists, stewarding the worship culture of the church with excellence, humility, and a deep love for God's presence.",
 		imageUrl: '/placeholder-leader.png',
 	},
 ]
@@ -71,13 +72,13 @@ const LeaderCard = ({ leader, featured = false }: { leader: LeaderProfile; featu
 			/>
 		</div>
 		<div className={['flex flex-col justify-center p-6', featured ? 'md:p-8' : ''].join(' ')}>
-			<p className='text-[10px] font-bold uppercase tracking-[0.22em] text-rccg-red'>
+			<p className='text-[11px] font-bold uppercase tracking-[0.22em] text-rccg-red'>
 				{leader.role}
 			</p>
-			<h2 className={['font-extrabold tracking-tight text-slate-900', featured ? 'mt-1.5 text-2xl sm:text-3xl' : 'mt-1 text-base'].join(' ')}>
+			<h2 className={['font-extrabold tracking-tight text-slate-900', featured ? 'mt-1.5 text-2xl sm:text-3xl' : 'mt-1 text-lg'].join(' ')}>
 				{leader.name}
 			</h2>
-			<p className={['mt-3 leading-relaxed text-slate-600', featured ? 'text-sm sm:text-[15px]' : 'text-xs'].join(' ')}>
+			<p className={['mt-3 leading-relaxed text-slate-600', featured ? 'text-base sm:text-lg' : 'text-sm'].join(' ')}>
 				{leader.bio}
 			</p>
 			{(leader.email || leader.phone) && (
@@ -85,18 +86,18 @@ const LeaderCard = ({ leader, featured = false }: { leader: LeaderProfile; featu
 					{leader.email && (
 						<a
 							href={`mailto:${leader.email}`}
-							className='inline-flex items-center gap-1.5 text-xs font-semibold text-rccg-red no-underline transition hover:underline'
+							className='inline-flex items-center gap-1.5 text-sm font-semibold text-rccg-red no-underline transition hover:underline'
 						>
-							<Mail className='h-3.5 w-3.5' aria-hidden />
+							<Mail className='h-4 w-4' aria-hidden />
 							{leader.email}
 						</a>
 					)}
 					{leader.phone && (
 						<a
 							href={`tel:${leader.phone.replace(/\s/g, '')}`}
-							className='inline-flex items-center gap-1.5 text-xs font-semibold text-rccg-red no-underline transition hover:underline'
+							className='inline-flex items-center gap-1.5 text-sm font-semibold text-rccg-red no-underline transition hover:underline'
 						>
-							<Phone className='h-3.5 w-3.5' aria-hidden />
+							<Phone className='h-4 w-4' aria-hidden />
 							{leader.phone}
 						</a>
 					)}
@@ -109,6 +110,12 @@ const LeaderCard = ({ leader, featured = false }: { leader: LeaderProfile; featu
 export const Leadership = () => {
 	return (
 		<div className='space-y-16 sm:space-y-20'>
+			<PageSEO
+				title='Our Leadership'
+				description='Meet the pastoral team and ministry leaders at RCCG Psalms & Hymns Parish in Cobridge, Stoke-on-Trent. Servant-leaders called and equipped to shepherd the church.'
+				path='/leadership'
+				keywords='RCCG pastor Stoke-on-Trent, church leadership Cobridge, Pastor Emmanuel Adegorusi, RCCG Psalms Hymns leadership team'
+			/>
 
 			{/* PAGE HEADER */}
 			<section className='space-y-3 text-center'>
@@ -118,7 +125,7 @@ export const Leadership = () => {
 				<h1 className='text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl'>
 					Our Leadership
 				</h1>
-				<p className='mx-auto max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base'>
+				<p className='mx-auto max-w-2xl text-base leading-relaxed text-slate-500 sm:text-lg'>
 					Our leaders are servant-leaders — men and women called and equipped by God
 					to shepherd, serve, and equip the body of Christ at Psalms &amp; Hymns Parish.
 				</p>
@@ -156,26 +163,26 @@ export const Leadership = () => {
 
 			{/* SCRIPTURE QUOTE */}
 			<section className='rounded-2xl bg-slate-50 px-8 py-10 text-center ring-1 ring-slate-200'>
-				<blockquote className='mx-auto max-w-2xl text-base font-medium italic leading-relaxed text-slate-700 sm:text-lg'>
+				<blockquote className='mx-auto max-w-2xl text-lg font-medium italic leading-relaxed text-slate-700 sm:text-xl'>
 					&ldquo;He who is greatest among you shall be your servant.&rdquo;
 				</blockquote>
-				<cite className='mt-3 block text-xs font-semibold tracking-wide text-slate-400'>
+				<cite className='mt-3 block text-sm font-semibold tracking-wide text-slate-400'>
 					Matthew 23:11
 				</cite>
 			</section>
 
 			{/* CONNECT CTA */}
 			<section className='rounded-2xl bg-rccg-red px-6 py-12 text-center text-white shadow-lg'>
-				<h2 className='text-xl font-extrabold tracking-tight sm:text-2xl'>
+				<h2 className='text-2xl font-extrabold tracking-tight sm:text-3xl'>
 					Want to Connect with a Leader?
 				</h2>
-				<p className='mx-auto mt-2 max-w-lg text-sm text-white/80'>
+				<p className='mx-auto mt-2 max-w-lg text-base text-white/80'>
 					Reach out to us — our leaders are accessible and would love to pray with you,
 					answer your questions, or simply chat over a cup of tea.
 				</p>
 				<a
 					href='/contact'
-					className='mt-6 inline-block rounded-full bg-rccg-gold px-7 py-3 text-xs font-bold uppercase tracking-[0.16em] text-rccg-maroon no-underline shadow transition hover:bg-amber-400'
+					className='mt-6 inline-block rounded-full bg-rccg-gold px-7 py-3 text-sm font-bold uppercase tracking-[0.16em] text-rccg-maroon no-underline shadow transition hover:bg-amber-400'
 				>
 					Contact Us
 				</a>

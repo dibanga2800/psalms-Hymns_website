@@ -8,16 +8,16 @@ import { usePostDetail } from '@/hooks/usePostDetail'
 const portableTextComponents: PortableTextComponents = {
 	block: {
 		normal: ({ children }) => (
-			<p className='mb-4 text-sm leading-relaxed text-slate-700'>{children}</p>
+			<p className='mb-4 text-base leading-relaxed text-slate-700'>{children}</p>
 		),
 		h2: ({ children }) => (
-			<h2 className='mb-3 mt-6 text-xl font-semibold text-slate-900'>{children}</h2>
+			<h2 className='mb-3 mt-6 text-2xl font-semibold text-slate-900'>{children}</h2>
 		),
 		h3: ({ children }) => (
-			<h3 className='mb-2 mt-5 text-lg font-semibold text-slate-900'>{children}</h3>
+			<h3 className='mb-2 mt-5 text-xl font-semibold text-slate-900'>{children}</h3>
 		),
 		h4: ({ children }) => (
-			<h4 className='mb-2 mt-4 text-base font-semibold text-slate-900'>{children}</h4>
+			<h4 className='mb-2 mt-4 text-lg font-semibold text-slate-900'>{children}</h4>
 		),
 	},
 	marks: {
@@ -26,12 +26,12 @@ const portableTextComponents: PortableTextComponents = {
 	},
 	list: {
 		bullet: ({ children }) => (
-			<ul className='mb-4 ml-5 list-disc space-y-1 text-sm leading-relaxed text-slate-700'>
+			<ul className='mb-4 ml-5 list-disc space-y-1 text-base leading-relaxed text-slate-700'>
 				{children}
 			</ul>
 		),
 		number: ({ children }) => (
-			<ol className='mb-4 ml-5 list-decimal space-y-1 text-sm leading-relaxed text-slate-700'>
+			<ol className='mb-4 ml-5 list-decimal space-y-1 text-base leading-relaxed text-slate-700'>
 				{children}
 			</ol>
 		),
@@ -67,7 +67,7 @@ export const PostDetail = () => {
 					<ErrorState message='We were unable to load this blog post. Please try again later.' />
 				)}
 				{!isLoading && !isError && post && (
-					<div className='flex flex-wrap items-center gap-2 text-xs text-slate-500 sm:text-sm'>
+					<div className='flex flex-wrap items-center gap-2 text-sm text-slate-500 sm:text-base'>
 						{post.date && (
 							<span>
 								{new Date(post.date).toLocaleDateString('en-GB', {
@@ -84,7 +84,7 @@ export const PostDetail = () => {
 							</span>
 						)}
 						{post.category && (
-							<span className='inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600'>
+							<span className='inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600'>
 								{post.category}
 							</span>
 						)}
@@ -93,9 +93,9 @@ export const PostDetail = () => {
 			</section>
 
 			{!isLoading && !isError && post && (
-				<section className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-700 shadow-sm sm:p-6'>
+				<section className='space-y-4 rounded-xl border border-slate-200 bg-white p-5 leading-relaxed text-slate-700 shadow-sm sm:p-7'>
 					{post.heroImageUrl && (
-						<div className='-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl bg-slate-50 sm:-mx-6 sm:-mt-6'>
+						<div className='-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl bg-slate-50 sm:-mx-7 sm:-mt-7'>
 							<img
 								src={post.heroImageUrl}
 								alt={post.title ?? 'Blog post image'}
@@ -106,9 +106,9 @@ export const PostDetail = () => {
 					{post.body && post.body.length > 0 ? (
 						<PortableText value={post.body} components={portableTextComponents} />
 					) : post.excerpt ? (
-						<p>{post.excerpt}</p>
+						<p className='text-base'>{post.excerpt}</p>
 					) : (
-						<p className='text-slate-500'>
+						<p className='text-base text-slate-500'>
 							The full content for this blog post has not been added yet.
 						</p>
 					)}
@@ -117,4 +117,3 @@ export const PostDetail = () => {
 		</div>
 	)
 }
-
