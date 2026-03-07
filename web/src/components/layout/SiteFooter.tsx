@@ -37,9 +37,9 @@ export const SiteFooter = () => {
 								<Phone className='h-4 w-4 shrink-0' aria-hidden />
 								<span>07724 812795</span>
 							</span>
-							<span className='flex items-center gap-2'>
+							<span className='flex min-w-0 items-center gap-2'>
 								<Mail className='h-4 w-4 shrink-0' aria-hidden />
-								<span>rccgpsalmshymns@gmail.com</span>
+								<span className='break-all'>rccgpsalmshymns@gmail.com</span>
 							</span>
 						</div>
 						<a
@@ -56,7 +56,7 @@ export const SiteFooter = () => {
 					{/* Live Radio – embedded audio player card */}
 					<div className='space-y-5'>
 						<h2 className='text-base font-bold text-white'>RCCG Live Radio</h2>
-						<div className='w-[calc(100%+15px)] rounded-xl border border-white/10 bg-gradient-to-br from-rccg-ink via-rccg-ink to-slate-900 p-4 text-xs text-slate-200 shadow-md'>
+						<div className='w-full max-w-full rounded-xl border border-white/10 bg-gradient-to-br from-rccg-ink via-rccg-ink to-slate-900 p-4 text-xs text-slate-200 shadow-md'>
 							<div className='flex items-center justify-between gap-5'>
 								<div className='flex items-center gap-3'>
 									<div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/5 shadow-inner'>
@@ -107,7 +107,7 @@ export const SiteFooter = () => {
 					</div>
 
 					{/* Social Handles */}
-					<div className='space-y-3 pl-3'>
+					<div className='space-y-3 pl-0 md:pl-3'>
 						<h2 className='text-base font-bold text-white'>
 							Social Handles
 						</h2>

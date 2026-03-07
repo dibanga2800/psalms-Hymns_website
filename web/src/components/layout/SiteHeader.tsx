@@ -183,22 +183,22 @@ export const SiteHeader = () => {
 
 			{/* Main navigation bar */}
 			<div className='bg-rccg-red'>
-				<div className='container flex items-center justify-between py-3 text-white'>
+				<div className='container flex min-w-0 items-center justify-between gap-3 py-3 text-white'>
 					<Link
 						to='/'
-						className='flex shrink-0 items-center gap-3 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-rccg-red'
+						className='flex min-w-0 shrink-0 items-center gap-2 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-rccg-red sm:gap-3'
 						aria-label='Go to homepage'
 					>
 						<img
 							src='/rccg_logo.png'
 							alt='RCCG logo'
-							className='h-14 w-14 rounded-full bg-white object-contain p-1'
+							className='h-10 w-10 shrink-0 rounded-full bg-white object-contain p-0.5 sm:h-12 sm:w-12 md:h-14 md:w-14 md:p-1'
 						/>
-						<div className='flex flex-col'>
-							<span className='text-[11px] font-bold uppercase tracking-[0.18em] text-rccg-gold'>
+						<div className='min-w-0 flex flex-col'>
+							<span className='truncate text-[10px] font-bold uppercase leading-tight tracking-[0.12em] text-rccg-gold sm:text-[11px] sm:tracking-[0.18em]'>
 								The Redeemed Christian Church of God
 							</span>
-							<span className='text-[15px] font-extrabold leading-tight tracking-tight text-rccg-gold'>
+							<span className='truncate text-[12px] font-extrabold leading-tight tracking-tight text-rccg-gold sm:text-[14px] md:text-[15px]'>
 								Psalms &amp; Hymns Parish
 							</span>
 						</div>
@@ -248,8 +248,8 @@ export const SiteHeader = () => {
 
 			{/* Mobile drawer */}
 			<div
-				className={`overflow-hidden border-t border-slate-100 bg-white transition-all duration-300 lg:hidden ${
-					mobileOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+				className={`overflow-y-auto overflow-x-hidden border-t border-slate-100 bg-white transition-all duration-300 lg:hidden ${
+					mobileOpen ? 'max-h-[min(85vh,600px)] opacity-100' : 'max-h-0 opacity-0'
 				}`}
 			>
 				<nav className='container flex flex-col gap-1 py-4' aria-label='Mobile navigation'>

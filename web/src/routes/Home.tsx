@@ -351,8 +351,7 @@ export const Home = () => {
 		    ═══════════════════════════════════════════════ */}
 		{showHero && (
 			<section
-				className={`${fullBleed} ${negateTopPadding} relative overflow-hidden bg-slate-950`}
-				style={{ minHeight: 'calc(92vh - 0px)' }}
+				className={`${fullBleed} ${negateTopPadding} relative overflow-hidden bg-slate-950 min-h-[65vh] sm:min-h-[80vh] lg:min-h-[92vh]`}
 				aria-label='Hero'
 			>
 				{/* ── Background image layers with Ken Burns ── */}
@@ -391,10 +390,7 @@ export const Home = () => {
 				<div className='pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.45)_100%)]' />
 
 				{/* ── MAIN CONTENT ── */}
-				<div
-					className='relative z-10 flex flex-col'
-					style={{ minHeight: 'calc(92vh - 0px)' }}
-				>
+				<div className='relative z-10 flex min-h-[65vh] flex-col sm:min-h-[80vh] lg:min-h-[92vh]'>
 					{/* Top identity bar */}
 					<div className='container flex items-center justify-between py-5 sm:py-6'>
 						<div className='flex items-center gap-3'>
@@ -429,7 +425,7 @@ export const Home = () => {
 
 							{/* Main title */}
 							<h1
-								className='text-5xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl'
+								className='text-3xl font-extrabold leading-[1.1] tracking-tight text-white xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl'
 								aria-live='polite'
 							>
 								{currentSlide.title}
@@ -451,17 +447,17 @@ export const Home = () => {
 							</p>
 
 							{/* CTAs */}
-							<div className='flex flex-wrap gap-4 pt-1'>
+							<div className='flex flex-wrap gap-3 pt-1 sm:gap-4'>
 								<Link
 									to={currentSlide.ctaUrl ?? '/service-times'}
-									className='inline-flex items-center gap-2.5 rounded-full bg-rccg-gold px-8 py-4 text-sm font-bold uppercase tracking-[0.15em] text-rccg-maroon shadow-2xl shadow-rccg-gold/20 transition hover:bg-amber-400 hover:shadow-amber-500/30'
+									className='inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2.5 rounded-full bg-rccg-gold px-6 py-3.5 text-sm font-bold uppercase tracking-[0.15em] text-rccg-maroon shadow-2xl shadow-rccg-gold/20 transition hover:bg-amber-400 hover:shadow-amber-500/30 sm:px-8 sm:py-4'
 								>
 									{currentSlide.ctaText ?? 'Plan Your Visit'}
 									<ArrowRight className='h-4 w-4' aria-hidden />
 								</Link>
 								<Link
 									to='/prayer-request'
-									className='inline-flex items-center gap-2.5 rounded-full border border-white/30 bg-white/8 px-8 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/50 hover:bg-white/15'
+									className='inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2.5 rounded-full border border-white/30 bg-white/8 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:border-white/50 hover:bg-white/15 sm:px-8 sm:py-4'
 								>
 									Request Prayer
 								</Link>
@@ -548,25 +544,25 @@ export const Home = () => {
 					aria-label='Quick links'
 				>
 					<div className='container'>
-						<div className='grid grid-cols-2 lg:grid-cols-4'>
+						<div className='grid grid-cols-1 gap-px bg-slate-200 sm:grid-cols-2 sm:gap-0 sm:bg-transparent lg:grid-cols-4'>
 							{featureCards.map((card) => {
 								const Icon = card.icon
 								return (
 									<Link
 										key={card.title}
 										to={card.href}
-										className={`group flex items-center gap-4 border-l-4 px-5 py-6 transition hover:bg-slate-50 sm:px-7 sm:py-8 ${card.borderColor}`}
+										className={`group flex items-center gap-3 border-l-4 bg-white px-4 py-5 transition hover:bg-slate-50 sm:gap-4 sm:px-5 sm:py-6 md:px-7 md:py-8 ${card.borderColor}`}
 									>
 										<div
-											className={`shrink-0 ${card.iconBg} flex h-14 w-14 items-center justify-center rounded-xl shadow-sm transition group-hover:scale-105`}
+											className={`shrink-0 ${card.iconBg} flex h-12 w-12 items-center justify-center rounded-xl shadow-sm transition group-hover:scale-105 sm:h-14 sm:w-14`}
 										>
-											<Icon className={`h-6 w-6 ${card.iconColor}`} aria-hidden />
+											<Icon className={`h-5 w-5 ${card.iconColor} sm:h-6 sm:w-6`} aria-hidden />
 										</div>
-										<div className='min-w-0'>
-											<p className='text-base font-bold uppercase tracking-[0.14em] text-slate-800'>
+										<div className='min-w-0 flex-1'>
+											<p className='text-sm font-bold uppercase tracking-[0.12em] text-slate-800 sm:text-base sm:tracking-[0.14em]'>
 												{card.title}
 											</p>
-											<p className='mt-1.5 text-base leading-relaxed text-slate-600'>
+											<p className='mt-1 text-sm leading-relaxed text-slate-600 sm:mt-1.5 sm:text-base'>
 												{card.description}
 											</p>
 											<span
@@ -660,13 +656,13 @@ export const Home = () => {
 							</p>
 
 							{/* Stats strip */}
-							<div className='grid grid-cols-3 gap-3 border-y border-slate-200 py-6'>
+							<div className='grid grid-cols-1 gap-4 border-y border-slate-200 py-6 sm:grid-cols-3 sm:gap-3'>
 								{[
 									{ value: 'Sunday', label: 'Weekly Service', sub: '3:00 – 5:00 pm' },
 									{ value: '30+', label: 'Nations Represented', sub: 'In our congregation' },
 									{ value: '1952', label: 'RCCG Founded', sub: 'Worldwide family' },
 								].map((stat) => (
-									<div key={stat.label} className='text-center'>
+									<div key={stat.label} className='flex flex-col items-center justify-center border-b border-slate-100 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:border-slate-200 sm:py-0 sm:last:border-r-0 [&:not(:last-child)]:sm:pr-4 [&:not(:first-child)]:sm:pl-4'>
 										<p className='text-xl font-extrabold text-rccg-red sm:text-2xl'>{stat.value}</p>
 										<p className='mt-1 text-xs font-semibold text-slate-700'>{stat.label}</p>
 										<p className='text-[11px] text-slate-400'>{stat.sub}</p>
