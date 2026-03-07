@@ -159,12 +159,13 @@ export default async function handler(
 		return
 	}
 
-	const user = process.env.GMAIL_USER
-	const pass = process.env.GMAIL_APP_PASSWORD
-	const to = process.env.EMAIL_TO || user
+	const user = process.env.GMAIL_USER?.trim()
+	const rawPass = process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_APP_PASS
+	const pass = rawPass?.replace(/\s/g, '')?.trim() || ''
+	const to = process.env.EMAIL_TO?.trim() || user
 
 	if (!user || !pass) {
-		console.error('[send-email] GMAIL_USER or GMAIL_APP_PASSWORD not configured')
+		console.error('[send-email] GMAIL_USER or GMAIL_APP_PASSWORD not configured. Set both in Vercel → Settings → Environment Variables, then redeploy.')
 		res.status(500).json({ error: 'Email service not configured' })
 		return
 	}
