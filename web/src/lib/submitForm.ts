@@ -1,6 +1,4 @@
-const API_BASE =
-	import.meta.env.VITE_CONTACT_API_URL ||
-	(import.meta.env.PROD ? '/api/send-email' : '/api/send-email')
+const SEND_EMAIL_URL = '/api/send-email'
 
 export type FormPayload =
 	| { context: 'contact-form'; name: string; email: string; phone: string; message: string }
@@ -8,9 +6,7 @@ export type FormPayload =
 	| { context: 'membership-form'; name: string; email: string; phone: string; note?: string }
 
 export async function submitForm(payload: FormPayload): Promise<void> {
-	const url = typeof API_BASE === 'string' && API_BASE.startsWith('http')
-		? API_BASE
-		: `${window.location.origin}${API_BASE.startsWith('/') ? '' : '/'}${API_BASE}`
+	const url = `${window.location.origin}${SEND_EMAIL_URL}`
 
 	const response = await fetch(url, {
 		method: 'POST',
