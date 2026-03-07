@@ -1,5 +1,5 @@
 {
-	"installCommand": "npm install && npm install --prefix web",
+	"installCommand": "npm install && npm install --prefix web && npm install --prefix sanity",
 	"buildCommand": "npm run build --prefix web",
 	"outputDirectory": "web/dist",
 	"framework": null,
