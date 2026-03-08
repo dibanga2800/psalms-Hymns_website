@@ -291,7 +291,7 @@ export const Home = () => {
 		}
 	}
 
-	const heading = data?.heroHeading ?? 'A Place of Praise. A Home of Worship.'
+	const heading = data?.heroHeading ?? ''
 	const currentSlide = getSlideData(activeIndex)
 	const events: EventSummary[] = data?.upcomingEvents ?? []
 	const posts: PostSummary[] = data?.highlightedPosts ?? []
@@ -442,9 +442,11 @@ export const Home = () => {
 							)}
 
 							{/* Tagline */}
-							<p className='max-w-lg text-base leading-relaxed text-white/65 sm:text-lg'>
-								{heading}
-							</p>
+							{heading && (
+								<p className='max-w-lg text-base leading-relaxed text-white/65 sm:text-lg'>
+									{heading}
+								</p>
+							)}
 
 							{/* CTAs */}
 							<div className='flex flex-wrap gap-3 pt-1 sm:gap-4'>
