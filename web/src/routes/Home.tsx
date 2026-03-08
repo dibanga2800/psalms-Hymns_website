@@ -392,10 +392,7 @@ export const Home = () => {
 				{/* ── MAIN CONTENT ── */}
 				<div className='relative z-10 flex min-h-[65vh] flex-col sm:min-h-[80vh] lg:min-h-[92vh]'>
 					{/* Top identity bar */}
-					<div className='container flex items-center justify-between py-5 sm:py-6'>
-						<div className='flex items-center gap-3'>
-							<span className='h-px w-6 bg-rccg-gold/50' aria-hidden />
-						</div>
+					<div className='container flex items-center justify-end py-5 sm:py-6'>
 						{isLoading && (
 							<span className='text-[10px] text-white/30'>Loading…</span>
 						)}
