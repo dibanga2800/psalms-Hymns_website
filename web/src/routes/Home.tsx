@@ -395,9 +395,6 @@ export const Home = () => {
 					<div className='container flex items-center justify-between py-5 sm:py-6'>
 						<div className='flex items-center gap-3'>
 							<span className='h-px w-6 bg-rccg-gold/50' aria-hidden />
-							<span className='hidden text-[10px] font-bold uppercase tracking-[0.35em] text-white/45 sm:block'>
-								RCCG Psalms &amp; Hymns Parish · Stoke-on-Trent
-							</span>
 						</div>
 						{isLoading && (
 							<span className='text-[10px] text-white/30'>Loading…</span>
