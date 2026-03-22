@@ -13,8 +13,10 @@
 	},
 	"scripts": {
 		"dev": "npm run dev --prefix web",
+		"dev:vercel": "vercel dev",
 		"build": "npm run build --prefix web",
 		"preview": "npm run preview --prefix web",
-		"test": "npm run test --prefix web"
+		"test": "npm run test --prefix web",
+		"test:email": "node scripts/test-email.cjs"
 	}
 }

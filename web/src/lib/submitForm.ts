@@ -5,6 +5,11 @@ export type FormPayload =
 	| { context: 'prayer-request'; name?: string; contact?: string; request: string }
 	| { context: 'membership-form'; name: string; email: string; phone: string; note?: string }
 
+export interface SubmitFormResult {
+	/** True when the Vite dev mock answered — no email is sent (only local `npm run dev`). */
+	mock: boolean
+}
+
 function getSendEmailUrl(): string {
 	const base = import.meta.env.VITE_FORM_API_BASE_URL?.trim().replace(/\/$/, '') ?? ''
 	if (base) {
@@ -13,7 +18,7 @@ function getSendEmailUrl(): string {
 	return `${window.location.origin}${SEND_EMAIL_PATH}`
 }
 
-export async function submitForm(payload: FormPayload): Promise<void> {
+export async function submitForm(payload: FormPayload): Promise<SubmitFormResult> {
 	const url = getSendEmailUrl()
 
 	let response: Response
@@ -26,7 +31,7 @@ export async function submitForm(payload: FormPayload): Promise<void> {
 	} catch (err) {
 		const hint =
 			import.meta.env.DEV && url.startsWith(window.location.origin)
-				? ' No /api route in Vite dev: set VITE_MOCK_FORM_SUBMIT=true in web/.env or run `vercel dev` from the repo root.'
+				? ' Use VITE_FORM_API_BASE_URL for your deployed API, or run `npm run dev:vercel` from the repo root.'
 				: ''
 		throw new Error(
 			err instanceof Error
@@ -35,8 +40,9 @@ export async function submitForm(payload: FormPayload): Promise<void> {
 		)
 	}
 
+	const body = await response.text()
+
 	if (!response.ok) {
-		const body = await response.text()
 		let message = `Request failed (${response.status})`
 		try {
 			const json = JSON.parse(body) as { error?: string }
@@ -44,9 +50,29 @@ export async function submitForm(payload: FormPayload): Promise<void> {
 		} catch {
 			if (body.includes('<!DOCTYPE') || body.includes('<html')) {
 				message =
-					'Form endpoint not found. Deploy includes /api/send-email, or set VITE_FORM_API_BASE_URL to your API origin.'
+					response.status === 404 && import.meta.env.DEV
+						? 'Form API not found (404). With Vite dev, the mock should handle /api/send-email — restart the dev server. Or set VITE_FORM_API_BASE_URL to your deployed site, or run `npm run dev:vercel` from the repo root.'
+						: 'Form endpoint not found. Deploy includes /api/send-email, or set VITE_FORM_API_BASE_URL to your API origin.'
 			}
 		}
 		throw new Error(message)
 	}
+
+	let mock = false
+	if (body.trim()) {
+		try {
+			const json = JSON.parse(body) as { mock?: boolean }
+			if (json.mock === true) mock = true
+		} catch {
+			// Real API may return { success: true } without mock field
+		}
+	}
+
+	if (mock && import.meta.env.DEV) {
+		console.info(
+			'[submitForm] Response was from the Vite dev mock — no email was sent. Use your live site, VITE_FORM_API_BASE_URL, or `npm run dev:vercel` for real mail.',
+		)
+	}
+
+	return { mock }
 }

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 
 import { submitForm } from '@/lib/submitForm'
+import { DevFormMockSuccessBanner } from './DevFormMockSuccessBanner'
 import { MathCaptchaField } from './MathCaptchaField'
 import { useMathCaptcha } from '@/hooks/useMathCaptcha'
 
@@ -19,11 +20,13 @@ export const PrayerRequestForm = () => {
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
 	const [serverError, setServerError] = useState<string | null>(null)
+	const [successKind, setSuccessKind] = useState<'real' | 'mock' | null>(null)
 	const captcha = useMathCaptcha()
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		const formData = new FormData(event.currentTarget)
+		const form = event.currentTarget
+		const formData = new FormData(form)
 
 		// Honeypot: bots often fill hidden fields
 		if (String(formData.get('website')).trim()) return
@@ -36,6 +39,7 @@ export const PrayerRequestForm = () => {
 		}
 
 		setServerError(null)
+		setSuccessKind(null)
 
 		const parsed = schema.safeParse(values)
 
@@ -63,14 +67,15 @@ export const PrayerRequestForm = () => {
 		setFormState('submitting')
 
 		try {
-			await submitForm({
+			const { mock } = await submitForm({
 				context: 'prayer-request',
 				name: parsed.data.name || undefined,
 				contact: parsed.data.contact || undefined,
 				request: parsed.data.request,
 			})
+			setSuccessKind(mock ? 'mock' : 'real')
 			setFormState('success')
-			event.currentTarget.reset()
+			form.reset()
 			captcha.regenerate()
 		} catch (error) {
 			console.error('[prayer-request] Failed to submit', error)
@@ -151,11 +156,13 @@ export const PrayerRequestForm = () => {
 			>
 				{formState === 'submitting' ? 'Sending...' : 'Submit request'}
 			</button>
-			{formState === 'success' && (
-				<p className='text-xs text-emerald-400'>
-					Your request has been recorded. Our prayer team will pray along with
-					you.
+			{formState === 'success' && successKind === 'real' && (
+				<p className='text-xs text-emerald-600'>
+					Your request has been sent. Our prayer team will pray along with you.
 				</p>
+			)}
+			{formState === 'success' && successKind === 'mock' && (
+				<DevFormMockSuccessBanner />
 			)}
 			{serverError && (
 				<p className='text-xs text-red-400' role='alert'>

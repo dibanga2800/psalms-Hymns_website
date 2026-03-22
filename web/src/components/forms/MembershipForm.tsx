@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 
 import { submitForm } from '@/lib/submitForm'
+import { DevFormMockSuccessBanner } from './DevFormMockSuccessBanner'
 import { MathCaptchaField } from './MathCaptchaField'
 import { useMathCaptcha } from '@/hooks/useMathCaptcha'
 
@@ -20,11 +21,13 @@ export const MembershipForm = () => {
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
 	const [serverError, setServerError] = useState<string | null>(null)
+	const [successKind, setSuccessKind] = useState<'real' | 'mock' | null>(null)
 	const captcha = useMathCaptcha()
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		const formData = new FormData(event.currentTarget)
+		const form = event.currentTarget
+		const formData = new FormData(form)
 
 		// Honeypot: bots often fill hidden fields — silently reject
 		if (String(formData.get('website')).trim()) {
@@ -40,6 +43,7 @@ export const MembershipForm = () => {
 		}
 
 		setServerError(null)
+		setSuccessKind(null)
 
 		const parsed = schema.safeParse(values)
 
@@ -67,15 +71,16 @@ export const MembershipForm = () => {
 		setFormState('submitting')
 
 		try {
-			await submitForm({
+			const { mock } = await submitForm({
 				context: 'membership-form',
 				name: parsed.data.name,
 				email: parsed.data.email,
 				phone: parsed.data.phone,
 				note: parsed.data.note || undefined,
 			})
+			setSuccessKind(mock ? 'mock' : 'real')
 			setFormState('success')
-			event.currentTarget.reset()
+			form.reset()
 			captcha.regenerate()
 		} catch (error) {
 			console.error('[membership] Failed to submit', error)
@@ -176,11 +181,14 @@ export const MembershipForm = () => {
 			>
 				{formState === 'submitting' ? 'Submitting...' : 'Submit'}
 			</button>
-			{formState === 'success' && (
-				<p className='text-xs text-emerald-400'>
+			{formState === 'success' && successKind === 'real' && (
+				<p className='text-xs text-emerald-600'>
 					Thank you for your interest in becoming a member. Our team will follow
 					up with you shortly.
 				</p>
+			)}
+			{formState === 'success' && successKind === 'mock' && (
+				<DevFormMockSuccessBanner />
 			)}
 			{serverError && (
 				<p className='text-xs text-red-400' role='alert'>

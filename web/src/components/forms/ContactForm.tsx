@@ -2,6 +2,7 @@ import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import { DevFormMockSuccessBanner } from './DevFormMockSuccessBanner'
 import { submitForm } from '@/lib/submitForm'
 
 const schema = z.object({
@@ -21,6 +22,7 @@ export const ContactForm = () => {
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
 	const [serverError, setServerError] = useState<string | null>(null)
+	const [successKind, setSuccessKind] = useState<'real' | 'mock' | null>(null)
 	const [captcha, setCaptcha] = useState(() => {
 		const a = Math.floor(Math.random() * 5) + 2
 		const b = Math.floor(Math.random() * 5) + 2
@@ -35,7 +37,8 @@ export const ContactForm = () => {
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		const formData = new FormData(event.currentTarget)
+		const form = event.currentTarget
+		const formData = new FormData(form)
 		if (String(formData.get('website')).trim()) return
 		const values = {
 			name: String(formData.get('name') ?? ''),
@@ -47,6 +50,7 @@ export const ContactForm = () => {
 
 		setCaptchaError(null)
 		setServerError(null)
+		setSuccessKind(null)
 
 		const parsed = schema.safeParse(values)
 
@@ -73,15 +77,16 @@ export const ContactForm = () => {
 		setFormState('submitting')
 
 		try {
-			await submitForm({
+			const { mock } = await submitForm({
 				context: 'contact-form',
 				name: parsed.data.name,
 				email: parsed.data.email,
 				phone: parsed.data.phone,
 				message: parsed.data.message,
 			})
+			setSuccessKind(mock ? 'mock' : 'real')
 			setFormState('success')
-			event.currentTarget.reset()
+			form.reset()
 			regenerateCaptcha()
 		} catch (error) {
 			console.error('[contact] Failed to submit contact form', error)
@@ -199,10 +204,13 @@ export const ContactForm = () => {
 			>
 				{formState === 'submitting' ? 'Sending...' : 'Send message'}
 			</button>
-			{formState === 'success' && (
-				<p className='text-xs text-emerald-400'>
-					Thank you. Your message has been recorded.
+			{formState === 'success' && successKind === 'real' && (
+				<p className='text-xs text-emerald-600'>
+					Thank you. Your message has been sent — we will get back to you soon.
 				</p>
+			)}
+			{formState === 'success' && successKind === 'mock' && (
+				<DevFormMockSuccessBanner />
 			)}
 			{serverError && (
 				<p className='text-xs text-red-400' role='alert'>
