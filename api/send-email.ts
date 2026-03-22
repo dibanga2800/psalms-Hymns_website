@@ -1,6 +1,48 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import nodemailer from 'nodemailer'
 
+/**
+ * Vercel sometimes provides JSON as a string, Buffer, or parsed object depending on
+ * runtime and routing. Normalize to a plain object for validation.
+ */
+function getJsonBody(req: VercelRequest): unknown {
+	const raw = req.body as unknown
+
+	if (raw === undefined || raw === null) return null
+
+	if (typeof raw === 'object' && !Buffer.isBuffer(raw)) {
+		return raw
+	}
+
+	const str =
+		typeof raw === 'string'
+			? raw
+			: Buffer.isBuffer(raw)
+				? raw.toString('utf8')
+				: String(raw)
+	const trimmed = str.trim()
+	if (!trimmed) return null
+	try {
+		return JSON.parse(trimmed) as unknown
+	} catch {
+		return null
+	}
+}
+
+function applyCors(req: VercelRequest, res: VercelResponse): void {
+	const allowed =
+		process.env.FORM_ALLOWED_ORIGINS?.split(',')
+			.map((s) => s.trim())
+			.filter(Boolean) ?? []
+	const origin = req.headers.origin
+	if (origin && allowed.includes(origin)) {
+		res.setHeader('Access-Control-Allow-Origin', origin)
+		res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+		res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+		res.setHeader('Vary', 'Origin')
+	}
+}
+
 const CONTEXTS = ['contact-form', 'prayer-request', 'membership-form'] as const
 type FormContext = (typeof CONTEXTS)[number]
 
@@ -153,8 +195,15 @@ export default async function handler(
 	req: VercelRequest,
 	res: VercelResponse,
 ): Promise<void> {
+	applyCors(req, res)
+
+	if (req.method === 'OPTIONS') {
+		res.status(204).end()
+		return
+	}
+
 	if (req.method !== 'POST') {
-		res.setHeader('Allow', 'POST')
+		res.setHeader('Allow', 'POST, OPTIONS')
 		res.status(405).json({ error: 'Method not allowed' })
 		return
 	}
@@ -170,18 +219,27 @@ export default async function handler(
 		return
 	}
 
-	const payload = validatePayload(req.body)
+	const body = getJsonBody(req)
+	const payload = validatePayload(body)
 	if (!payload) {
+		const bodyType =
+			body === null
+				? 'null'
+				: typeof body === 'object'
+					? 'object'
+					: typeof body
+		const ctx =
+			body && typeof body === 'object' && 'context' in body
+				? String((body as { context?: unknown }).context)
+				: 'missing'
+		console.error(
+			'[send-email] Invalid request body (type=%s, context=%s)',
+			bodyType,
+			ctx,
+		)
 		res.status(400).json({ error: 'Invalid request body' })
 		return
 	}
-
-	const transporter = nodemailer.createTransport({
-		host: 'smtp.gmail.com',
-		port: 587,
-		secure: false,
-		auth: { user, pass },
-	})
 
 	const subject = getSubject(payload.context)
 	const text = formatEmailBody(payload)
@@ -196,17 +254,38 @@ export default async function handler(
 					? payload.contact
 					: undefined
 
-	try {
-		await transporter.sendMail({
-			from: `"RCCG Psalms & Hymns" <${user}>`,
-			to: to || 'rccgpsalmshymns@gmail.com',
-			subject,
-			text,
-			replyTo,
+	const mailOptions = {
+		from: `"RCCG Psalms & Hymns" <${user}>`,
+		to: to || 'rccgpsalmshymns@gmail.com',
+		subject,
+		text,
+		replyTo,
+	}
+
+	// Try port 587 (STARTTLS) first, then 465 (SSL) - some networks block 587
+	const trySend = async (port: number, secure: boolean) => {
+		const transporter = nodemailer.createTransport({
+			host: 'smtp.gmail.com',
+			port,
+			secure,
+			auth: { user, pass },
 		})
+		await transporter.verify()
+		await transporter.sendMail(mailOptions)
+	}
+
+	try {
+		try {
+			await trySend(587, false)
+		} catch (err587) {
+			console.warn('[send-email] Port 587 failed, trying 465:', err587)
+			await trySend(465, true)
+		}
 		res.status(200).json({ success: true })
 	} catch (err) {
-		console.error('[send-email] Failed to send', err)
+		const msg = err instanceof Error ? err.message : String(err)
+		console.error('[send-email] Failed to send:', msg, err)
+		// Don't expose internal errors to client; log full details in Vercel
 		res.status(500).json({ error: 'Failed to send email' })
 	}
 }

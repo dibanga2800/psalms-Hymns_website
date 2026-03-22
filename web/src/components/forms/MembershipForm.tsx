@@ -13,12 +13,13 @@ const schema = z.object({
 	note: z.string().optional(),
 })
 
-type FormState = 'idle' | 'submitting' | 'success' | 'error'
+type FormState = 'idle' | 'submitting' | 'success'
 
 export const MembershipForm = () => {
 	const [formState, setFormState] = useState<FormState>('idle')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const [serverError, setServerError] = useState<string | null>(null)
 	const captcha = useMathCaptcha()
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -38,6 +39,8 @@ export const MembershipForm = () => {
 			captcha: String(formData.get('captcha') ?? ''),
 		}
 
+		setServerError(null)
+
 		const parsed = schema.safeParse(values)
 
 		if (!parsed.success) {
@@ -50,14 +53,12 @@ export const MembershipForm = () => {
 			}
 			setErrors(fieldErrors)
 			setCaptchaError(null)
-			setFormState('error')
 			return
 		}
 
 		const answer = Number(values.captcha.trim())
 		if (!Number.isFinite(answer) || answer !== captcha.solution) {
 			setCaptchaError('Please answer the anti-spam question correctly.')
-			setFormState('error')
 			return
 		}
 
@@ -78,7 +79,12 @@ export const MembershipForm = () => {
 			captcha.regenerate()
 		} catch (error) {
 			console.error('[membership] Failed to submit', error)
-			setFormState('error')
+			setFormState('idle')
+			setServerError(
+				error instanceof Error
+					? error.message
+					: 'Something went wrong. Please try again later.',
+			)
 		}
 	}
 
@@ -176,9 +182,9 @@ export const MembershipForm = () => {
 					up with you shortly.
 				</p>
 			)}
-			{formState === 'error' && (
-				<p className='text-xs text-red-400'>
-					Something went wrong. Please try again later.
+			{serverError && (
+				<p className='text-xs text-red-400' role='alert'>
+					{serverError}
 				</p>
 			)}
 		</form>

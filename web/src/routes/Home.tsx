@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import { PageSEO } from '@/components/common/PageSEO'
+import { GalleryLightbox } from '@/components/gallery/GalleryLightbox'
 import {
 	ArrowRight,
 	Banknote,
@@ -185,18 +186,42 @@ export const Home = () => {
 	const [prevIndex, setPrevIndex] = useState<number | null>(null)
 	const [isPaused, setIsPaused] = useState(false)
 	const [slideProgress, setSlideProgress] = useState(0)
+	const [homeGalleryLightboxIndex, setHomeGalleryLightboxIndex] = useState<
+		number | null
+	>(null)
 	const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 	const progressRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+	const heroDataResolved = !isLoading
 
 	const heroSlidesFromCms: (HomeHeroSlide | null | undefined)[] = data?.heroSlides ?? []
 	const activeHeroSlides: HomeHeroSlide[] = heroSlidesFromCms.filter(
 		(slide): slide is HomeHeroSlide => !!slide && !!slide.imageUrl && (slide.active ?? true),
 	)
 
-	const totalSlides = activeHeroSlides.length > 0 ? activeHeroSlides.length : localSlides.length
-	const hasCmsSlides = activeHeroSlides.length > 0
+	const hasCmsSlides = heroDataResolved && activeHeroSlides.length > 0
+
+	// While Sanity is loading, do not paint local placeholder images — they flash-replace when CMS
+	// slides arrive. Use a single dark layer until data is resolved, then CMS or local slides.
+	const totalSlides = !heroDataResolved
+		? 1
+		: hasCmsSlides
+			? activeHeroSlides.length
+			: localSlides.length
 
 	const getSlideData = (index: number) => {
+		if (!heroDataResolved) {
+			const local = localSlides[activeIndex % localSlides.length]
+			return {
+				month: local.month,
+				title: local.title,
+				scripture: local.scripture,
+				imageUrl: undefined,
+				ctaText: undefined,
+				ctaUrl: undefined,
+				accentColor: undefined,
+			}
+		}
 		if (hasCmsSlides) {
 			const cms = activeHeroSlides[index % activeHeroSlides.length]
 			return {
@@ -587,8 +612,8 @@ export const Home = () => {
 				<div className='container'>
 					<div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16 xl:gap-24'>
 
-						{/* ── LEFT: Framed portrait ── */}
-						<div className='relative order-last mx-auto w-full max-w-md lg:order-first lg:max-w-none'>
+						{/* ── LEFT: Framed portrait (capped on lg+ so it does not fill half the viewport) */}
+						<div className='relative order-last mx-auto w-full max-w-sm sm:max-w-md lg:order-first lg:max-w-lg'>
 							{/* Decorative offset block — top-left */}
 							<div
 								className='absolute -left-4 -top-4 h-3/4 w-3/4 rounded-2xl bg-rccg-red/8 lg:-left-6 lg:-top-6'
@@ -1094,31 +1119,50 @@ export const Home = () => {
 										Photo Gallery
 									</p>
 									{galleryItems.length > 0 ? (
-										<div className='grid grid-cols-3 gap-2'>
-											{galleryItems.slice(0, 6).map((item, index) => (
-												<div
-													key={item._id}
-													className={`group overflow-hidden rounded-xl ${
-														index === 0 ? 'col-span-2 row-span-2' : ''
-													}`}
-												>
-													{item.imageUrl ? (
-														<img
-															src={item.imageUrl}
-															alt={item.caption ?? item.title ?? 'Gallery image'}
-															className='aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105'
-														/>
-													) : (
-														<div
-															className='flex aspect-square items-center justify-center bg-slate-100'
-															aria-hidden
+										<>
+											<div className='grid grid-cols-3 gap-2'>
+												{galleryItems.slice(0, 6).map((item, index) => {
+													const openLabel =
+														item.caption ??
+														item.title ??
+														'Open gallery image'
+													return (
+														<button
+															key={item._id}
+															type='button'
+															onClick={() => setHomeGalleryLightboxIndex(index)}
+															className={`group overflow-hidden rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rccg-red ${
+																index === 0 ? 'col-span-2 row-span-2' : ''
+															}`}
+															aria-label={openLabel}
 														>
-															<ImageIcon className='h-6 w-6 text-slate-300' />
-														</div>
-													)}
-												</div>
-											))}
-										</div>
+															{item.imageUrl ? (
+																<img
+																	src={item.imageUrl}
+																	alt=''
+																	loading='lazy'
+																	decoding='async'
+																	className='aspect-square h-full w-full object-cover transition duration-500 group-hover:scale-105'
+																/>
+															) : (
+																<div
+																	className='flex aspect-square items-center justify-center bg-slate-100'
+																	aria-hidden
+																>
+																	<ImageIcon className='h-6 w-6 text-slate-300' />
+																</div>
+															)}
+														</button>
+													)
+												})}
+											</div>
+											<GalleryLightbox
+												items={galleryItems.slice(0, 6)}
+												openIndex={homeGalleryLightboxIndex}
+												onNavigate={setHomeGalleryLightboxIndex}
+												onClose={() => setHomeGalleryLightboxIndex(null)}
+											/>
+										</>
 									) : (
 										<div className='grid grid-cols-3 gap-2'>
 											{[1, 2, 3, 4, 5, 6].map((i) => (

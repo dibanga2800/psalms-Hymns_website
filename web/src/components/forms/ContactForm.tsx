@@ -14,12 +14,13 @@ const schema = z.object({
 	message: z.string().min(10, 'Please enter at least 10 characters'),
 })
 
-type FormState = 'idle' | 'submitting' | 'success' | 'error'
+type FormState = 'idle' | 'submitting' | 'success'
 
 export const ContactForm = () => {
 	const [formState, setFormState] = useState<FormState>('idle')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const [serverError, setServerError] = useState<string | null>(null)
 	const [captcha, setCaptcha] = useState(() => {
 		const a = Math.floor(Math.random() * 5) + 2
 		const b = Math.floor(Math.random() * 5) + 2
@@ -45,6 +46,7 @@ export const ContactForm = () => {
 		}
 
 		setCaptchaError(null)
+		setServerError(null)
 
 		const parsed = schema.safeParse(values)
 
@@ -57,14 +59,12 @@ export const ContactForm = () => {
 				}
 			}
 			setErrors(fieldErrors)
-			setFormState('error')
 			return
 		}
 
 		const answer = Number(values.captcha.trim())
 		if (!Number.isFinite(answer) || answer !== captcha.solution) {
 			setCaptchaError('Please answer the anti-spam question correctly.')
-			setFormState('error')
 			return
 		}
 
@@ -85,7 +85,12 @@ export const ContactForm = () => {
 			regenerateCaptcha()
 		} catch (error) {
 			console.error('[contact] Failed to submit contact form', error)
-			setFormState('error')
+			setFormState('idle')
+			setServerError(
+				error instanceof Error
+					? error.message
+					: 'Something went wrong. Please try again or contact us directly.',
+			)
 		}
 	}
 
@@ -199,9 +204,9 @@ export const ContactForm = () => {
 					Thank you. Your message has been recorded.
 				</p>
 			)}
-			{formState === 'error' && (
-				<p className='text-xs text-red-400'>
-					Something went wrong. Please try again or contact us directly.
+			{serverError && (
+				<p className='text-xs text-red-400' role='alert'>
+					{serverError}
 				</p>
 			)}
 		</form>

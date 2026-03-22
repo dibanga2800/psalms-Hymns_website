@@ -12,12 +12,13 @@ const schema = z.object({
 	request: z.string().min(10, 'Please enter at least 10 characters'),
 })
 
-type FormState = 'idle' | 'submitting' | 'success' | 'error'
+type FormState = 'idle' | 'submitting' | 'success'
 
 export const PrayerRequestForm = () => {
 	const [formState, setFormState] = useState<FormState>('idle')
 	const [errors, setErrors] = useState<Record<string, string>>({})
 	const [captchaError, setCaptchaError] = useState<string | null>(null)
+	const [serverError, setServerError] = useState<string | null>(null)
 	const captcha = useMathCaptcha()
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -34,6 +35,8 @@ export const PrayerRequestForm = () => {
 			captcha: String(formData.get('captcha') ?? ''),
 		}
 
+		setServerError(null)
+
 		const parsed = schema.safeParse(values)
 
 		if (!parsed.success) {
@@ -46,14 +49,12 @@ export const PrayerRequestForm = () => {
 			}
 			setErrors(fieldErrors)
 			setCaptchaError(null)
-			setFormState('error')
 			return
 		}
 
 		const answer = Number(values.captcha.trim())
 		if (!Number.isFinite(answer) || answer !== captcha.solution) {
 			setCaptchaError('Please answer the anti-spam question correctly.')
-			setFormState('error')
 			return
 		}
 
@@ -73,7 +74,12 @@ export const PrayerRequestForm = () => {
 			captcha.regenerate()
 		} catch (error) {
 			console.error('[prayer-request] Failed to submit', error)
-			setFormState('error')
+			setFormState('idle')
+			setServerError(
+				error instanceof Error
+					? error.message
+					: 'Something went wrong. Please try again later.',
+			)
 		}
 	}
 
@@ -151,9 +157,9 @@ export const PrayerRequestForm = () => {
 					you.
 				</p>
 			)}
-			{formState === 'error' && (
-				<p className='text-xs text-red-400'>
-					Something went wrong. Please try again later.
+			{serverError && (
+				<p className='text-xs text-red-400' role='alert'>
+					{serverError}
 				</p>
 			)}
 		</form>

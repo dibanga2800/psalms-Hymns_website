@@ -1,14 +1,17 @@
+import { useState } from 'react'
 import { ImageIcon, Calendar, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { ErrorState } from '@/components/common/ErrorState'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PageSEO } from '@/components/common/PageSEO'
+import { GalleryLightbox } from '@/components/gallery/GalleryLightbox'
 import { useGallery } from '@/hooks/useGallery'
 import type { GalleryItemSummary } from '@/lib/types'
 
 export const Gallery = () => {
 	const { data: items = [], isLoading, isError } = useGallery()
+	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
 	return (
 		<div className='space-y-16 sm:space-y-24'>
@@ -85,14 +88,26 @@ export const Gallery = () => {
 				)}
 
 				{items.length > 0 && (
-					<div
-						className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
-						aria-label='Gallery images'
-					>
-						{items.map((item) => (
-							<GalleryCard key={item._id} item={item} />
-						))}
-					</div>
+					<>
+						<div
+							className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
+							aria-label='Gallery images'
+						>
+							{items.map((item, index) => (
+								<GalleryCard
+									key={item._id}
+									item={item}
+									onOpen={() => setLightboxIndex(index)}
+								/>
+							))}
+						</div>
+						<GalleryLightbox
+							items={items}
+							openIndex={lightboxIndex}
+							onNavigate={setLightboxIndex}
+							onClose={() => setLightboxIndex(null)}
+						/>
+					</>
 				)}
 			</section>
 
@@ -131,46 +146,70 @@ export const Gallery = () => {
 	)
 }
 
-const GalleryCard = ({ item }: { item: GalleryItemSummary }) => (
-	<figure className='group relative overflow-hidden rounded-2xl border-2 border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-slate-300/80'>
-		<div className='aspect-video overflow-hidden bg-slate-100'>
-			{item.imageUrl ? (
-				<img
-					src={item.imageUrl}
-					alt={item.caption ?? item.title ?? 'Gallery image'}
-					className='h-full w-full object-cover transition duration-500 group-hover:scale-105'
+const GalleryCard = ({
+	item,
+	onOpen,
+}: {
+	item: GalleryItemSummary
+	onOpen: () => void
+}) => {
+	const label = item.caption ?? item.title ?? 'Open gallery image'
+
+	return (
+		<figure className='group relative overflow-hidden rounded-2xl border-2 border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-slate-300/80'>
+			<div className='relative aspect-video overflow-hidden bg-slate-100'>
+				{item.imageUrl ? (
+					<img
+						src={item.imageUrl}
+						alt=''
+						loading='lazy'
+						decoding='async'
+						className='h-full w-full object-cover transition duration-500 group-hover:scale-105'
+					/>
+				) : (
+					<div className='flex h-full items-center justify-center' aria-hidden>
+						<ImageIcon
+							className='h-16 w-16 text-slate-300'
+							strokeWidth={1.5}
+							aria-hidden
+						/>
+					</div>
+				)}
+				<div
+					className='pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100'
+					aria-hidden
 				/>
-			) : (
-				<div className='flex h-full items-center justify-center' aria-hidden>
-					<ImageIcon className='h-16 w-16 text-slate-300' strokeWidth={1.5} aria-hidden />
-				</div>
+			</div>
+			{(item.title || item.caption || item.date) && (
+				<figcaption className='pointer-events-none space-y-2 px-5 py-4'>
+					{item.title && (
+						<p className='text-base font-bold text-slate-900 sm:text-lg'>
+							{item.title}
+						</p>
+					)}
+					{item.caption && (
+						<p className='text-sm leading-relaxed text-slate-600'>
+							{item.caption}
+						</p>
+					)}
+					{item.date && (
+						<p className='flex items-center gap-1.5 text-sm text-slate-400'>
+							<Calendar className='h-4 w-4 shrink-0 text-rccg-red/60' aria-hidden />
+							{new Date(item.date).toLocaleDateString('en-GB', {
+								day: 'numeric',
+								month: 'short',
+								year: 'numeric',
+							})}
+						</p>
+					)}
+				</figcaption>
 			)}
-			{/* Subtle gradient overlay on hover */}
-			<div className='absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' aria-hidden />
-		</div>
-		{(item.title || item.caption || item.date) && (
-			<figcaption className='space-y-2 px-5 py-4'>
-				{item.title && (
-					<p className='text-base font-bold text-slate-900 sm:text-lg'>
-						{item.title}
-					</p>
-				)}
-				{item.caption && (
-					<p className='text-sm leading-relaxed text-slate-600'>
-						{item.caption}
-					</p>
-				)}
-				{item.date && (
-					<p className='flex items-center gap-1.5 text-sm text-slate-400'>
-						<Calendar className='h-4 w-4 shrink-0 text-rccg-red/60' aria-hidden />
-						{new Date(item.date).toLocaleDateString('en-GB', {
-							day: 'numeric',
-							month: 'short',
-							year: 'numeric',
-						})}
-					</p>
-				)}
-			</figcaption>
-		)}
-	</figure>
-)
+			<button
+				type='button'
+				onClick={onOpen}
+				className='absolute inset-0 z-[1] cursor-pointer rounded-2xl bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rccg-red'
+				aria-label={label}
+			/>
+		</figure>
+	)
+}
